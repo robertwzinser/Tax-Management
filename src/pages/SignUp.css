@@ -1,0 +1,68 @@
+/* Overall styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f4;
+}
+
+/* Sign-up container */
+.sign-up-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.sign-up-box {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 28px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Link for users to switch to sign-in */
+p {
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+}
+
+p a {
+  color: #333;
+  text-decoration: none;
+}
+
+p a:hover {
+  color: #555;
+}
+
+/* Sign In text styling */
+.sign-in-text {
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.sign-in-text a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.sign-in-text a:hover {
+  color: #0056b3;
+}

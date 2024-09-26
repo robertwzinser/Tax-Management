@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword,} from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, db } from "../firebase";
 import "./SignIn.css";
@@ -11,12 +11,14 @@ const SignIn = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { email, password } = formData;
+  const { email, password, role } = formData;
   const navigate = useNavigate(); // Initialize navigate to redirect user
 
+  
   // Update form data when typing
   const onChange = (e) => {
     setFormData((prevState) => ({
@@ -45,9 +47,17 @@ const SignIn = () => {
         const userData = snapshot.val();
         const firstname = userData.firstname;
 
-        // Redirect to the dashboard and display the user's first name
-        // This navigate may change
+        if (role=== "employer"){
+         console.log('EmployerRoute')
         navigate("/dashboard", { state: { firstname } });
+        }
+        else {
+          console.log('FreelancerRoute')
+        navigate("/dashboard", { state: { firstname } });
+
+        }
+
+        
       } else {
         console.error("User is non-existent in Realtime Database");
       }
@@ -110,7 +120,14 @@ const SignIn = () => {
               <Link to="/forgot-password">Forgot Password?</Link>
             </p>
           </div>
+          <div class='roleselector'>
+          <select onChange={onChange} id = 'role' value={role}>
+            <option value='employer'>Employer</option>
+            <option value='freelancer'>FreeLancer</option>
+          </select>
+        </div>
         </form>
+       
       </div>
     </section>
   );

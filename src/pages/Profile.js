@@ -17,7 +17,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      // Fetch the profile data from Firebase Realtime Database
+      // Fetch the profile data from Firebase
       const userRef = ref(db, "users/" + user.uid);
       get(userRef).then((snapshot) => {
         if (snapshot.exists()) {

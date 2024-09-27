@@ -4,8 +4,10 @@ import SignIn from './pages/SignIn';
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import UserSettings from "./pages/UserSettings";
+import DailyIncome from "./pages/DailyIncome";
+
 import './App.css';
-import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -14,12 +16,9 @@ function App() {
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/profile" element={<Profile />} />
-
-
-        <Route path="/forgot-password" element={<ResetPassword />} />
-
+        <Route path="/user-settings" element={<UserSettings />} />
+        <Route path="/daily-income" element={<DailyIncome />} />
       </Routes>
     </Router>
   );

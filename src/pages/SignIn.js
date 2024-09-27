@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword,} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, db } from "../firebase";
 import "./SignIn.css";
@@ -16,9 +16,8 @@ const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const { email, password, role } = formData;
-  const navigate = useNavigate(); // Initialize navigate to redirect user
+  const navigate = useNavigate(); 
 
-  
   // Update form data when typing
   const onChange = (e) => {
     setFormData((prevState) => ({
@@ -40,24 +39,20 @@ const SignIn = () => {
 
       const user = userCredential.user;
 
-      // Get user's first name from Realtime Database
+      // Get first name from Realtime Database
       const userRef = ref(db, "users/" + user.uid);
       const snapshot = await get(userRef);
       if (snapshot.exists()) {
         const userData = snapshot.val();
         const firstname = userData.firstname;
 
-        if (role=== "employer"){
-         console.log('EmployerRoute')
-        navigate("/dashboard", { state: { firstname } });
+        if (role === "employer") {
+          console.log("EmployerRoute");
+          navigate("/dashboard", { state: { firstname } });
+        } else {
+          console.log("FreelancerRoute");
+          navigate("/dashboard", { state: { firstname } });
         }
-        else {
-          console.log('FreelancerRoute')
-        navigate("/dashboard", { state: { firstname } });
-
-        }
-
-        
       } else {
         console.error("User is non-existent in Realtime Database");
       }
@@ -72,7 +67,7 @@ const SignIn = () => {
       <div className="sign-in-box">
         <h1>Sign In</h1>
 
-        {/* Display error message if there's a problem signing the user in */}
+        {/* Display error message if problem signing user in */}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
 
         <form onSubmit={onSubmit}>
@@ -120,14 +115,7 @@ const SignIn = () => {
               <Link to="/forgot-password">Forgot Password?</Link>
             </p>
           </div>
-          <div class='roleselector'>
-          <select onChange={onChange} id = 'role' value={role}>
-            <option value='employer'>Employer</option>
-            <option value='freelancer'>FreeLancer</option>
-          </select>
-        </div>
         </form>
-       
       </div>
     </section>
   );

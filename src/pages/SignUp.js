@@ -3,7 +3,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { ref, set } from "firebase/database"; // For Firebase Realtime DB
+import { ref, set } from "firebase/database"; 
 import "./SignUp.css";
 
 const SignUp = () => {
@@ -16,10 +16,10 @@ const SignUp = () => {
     role: "",
   });
 
-  const navigate = useNavigate(); // Initialize navigate for redirection
+  const navigate = useNavigate(); 
   const { firstname, lastname, email, password, role } = formData;
 
-  // Update text when typing in form data
+  // Update text in back-end when typing in form data
   const onChange = (e) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -27,7 +27,7 @@ const SignUp = () => {
     }));
   };
 
-  // Register user with Firebase and store additional data in Realtime Database
+  // Register user with Firebase auth and store additional data in Realtime Database
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -50,7 +50,7 @@ const SignUp = () => {
         "User registered successfully! Redirect to the sign-in page?"
       );
       if (confirmation) {
-        // If user clicks "Ok", redirect to sign-in page
+        // Redirect to sign-in page if they click "Ok"
         navigate("/sign-in");
       } else {
         // Stay on the current page if they click "Cancel"
@@ -128,10 +128,10 @@ const SignUp = () => {
             Already have an account? <Link to="/sign-in">Sign In!</Link>
           </p>
         </div>
-        <div class= 'roleselector'>
-          <select onChange={onChange} id = 'role' value={role}>
-            <option value='employer'>Employer</option>
-            <option value='freelancer'>FreeLancer</option>
+        <div class="roleselector">
+          <select onChange={onChange} id="role" value={role}>
+            <option value="employer">Employer</option>
+            <option value="freelancer">FreeLancer</option>
           </select>
         </div>
       </div>

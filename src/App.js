@@ -5,8 +5,6 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import './App.css';
-import EmployerSignup from './pages/EmployerSignup';
-import EmployerSignin from './pages/EmployerSignin';
 import ResetPassword from './pages/ResetPassword';
 
 function App() {
@@ -21,8 +19,6 @@ function App() {
 
 
         <Route path="/forgot-password" element={<ResetPassword />} />
-        <Route path="/employersignup"element={<EmployerSignup/>}/>
-        <Route path="/employersignin"element={<EmployerSignin/>}/>
 
       </Routes>
     </Router>

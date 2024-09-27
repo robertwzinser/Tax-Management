@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { auth, db } from "../firebase";
 import {
   deleteUser,
@@ -23,7 +23,6 @@ const Dashboard = () => {
       "Please confirm your password to delete your account:"
     );
 
-    // Build the credential to re-authenticate the user
     const credential = EmailAuthProvider.credential(email, password);
 
     try {
@@ -47,17 +46,13 @@ const Dashboard = () => {
         if (user) {
           const userId = user.uid;
 
-          // Re-authenticate before deleting (FireBase requirement)
           const reauthenticated = await reauthenticate();
           if (!reauthenticated) return;
 
-          // Delete user from Realtime Database
           await remove(ref(db, "users/" + userId));
 
-          // Delete the user from Firebase Authentication
           await deleteUser(user);
 
-          // Redirect to sign-in page after account is deleted
           alert("Account successfully deleted.");
           navigate("/sign-in");
         }
@@ -72,17 +67,28 @@ const Dashboard = () => {
   const handleSignOut = async () => {
     try {
       await auth.signOut();
-      navigate("/sign-in"); // Redirect to sign-in after signing out
+      navigate("/sign-in");
     } catch (error) {
       console.error("There was a problem signing out:", error.message);
     }
   };
 
   return (
-    <section className="dashboard-container">
-      <h1>Welcome, {firstname}!</h1>
-      <div className="links-container">
-        <button onClick={handleSignOut} className="dashboard-btn">
+    <div className="dashboard-container">
+      {/* Navigation Bar */}
+      <nav className="navbar">
+        <Link to="/dashboard" className="nav-item left">Dashboard</Link>
+        <Link to="/profile" className="nav-item right">Profile</Link>
+      </nav>
+
+      {/* Welcome Message */}
+      <div className="welcome-container">
+        <h1>Welcome, {firstname}!</h1>
+      </div>
+
+      {/* Sign Out and Delete Account Buttons */}
+      <div className="actions-container">
+        <button onClick={handleSignOut} className="dashboard-btn signout-btn">
           Sign Out
         </button>
         <button
@@ -92,7 +98,7 @@ const Dashboard = () => {
           Delete My Account
         </button>
       </div>
-    </section>
+    </div>
   );
 };
 

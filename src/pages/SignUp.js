@@ -13,10 +13,11 @@ const SignUp = () => {
     lastname: "",
     email: "",
     password: "",
+    role: "",
   });
 
   const navigate = useNavigate(); // Initialize navigate for redirection
-  const { firstname, lastname, email, password } = formData;
+  const { firstname, lastname, email, password, role } = formData;
 
   // Update text when typing in form data
   const onChange = (e) => {
@@ -126,6 +127,12 @@ const SignUp = () => {
           <p className="sign-in-text">
             Already have an account? <Link to="/sign-in">Sign In!</Link>
           </p>
+        </div>
+        <div class= 'roleselector'>
+          <select onChange={onChange} id = 'role' value={role}>
+            <option value='employer'>Employer</option>
+            <option value='freelancer'>FreeLancer</option>
+          </select>
         </div>
       </div>
     </section>

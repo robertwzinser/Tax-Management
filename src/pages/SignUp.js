@@ -13,7 +13,7 @@ const SignUp = () => {
     lastname: "",
     email: "",
     password: "",
-    role: "",
+    role: "Employer",
   });
 
   const navigate = useNavigate(); 
@@ -43,6 +43,7 @@ const SignUp = () => {
         firstname,
         lastname,
         email,
+        role
       });
 
       // Show browser confirmation popup
@@ -130,8 +131,8 @@ const SignUp = () => {
         </div>
         <div class="roleselector">
           <select onChange={onChange} id="role" value={role}>
-            <option value="employer">Employer</option>
-            <option value="freelancer">FreeLancer</option>
+            <option value="Employer">Employer</option>
+            <option value="Freelancer">Freelancer</option>
           </select>
         </div>
       </div>

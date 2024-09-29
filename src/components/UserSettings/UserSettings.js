@@ -17,12 +17,12 @@ const UserSettings = () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
-            await user.reload(); // Reload user to get the latest state from Firebase
-            setIsEmailVerified(user.emailVerified); // Update the state with the latest verification status
+            await user.reload(); 
+            setIsEmailVerified(user.emailVerified); 
 
             // Fetch user's first name from Firebase Realtime Database
             const userId = user.uid;
-            const userRef = ref(db, `users/${userId}`); // Reference to the user's data in Realtime DB
+            const userRef = ref(db, `users/${userId}`); 
             const snapshot = await get(userRef);
             if (snapshot.exists()) {
               const userData = snapshot.val();

@@ -94,6 +94,9 @@ const Profile = () => {
           onChange={handleChange}
           disabled={!isEditing}
         />
+
+        <label htmlFor="role">Role</label>
+        <input type="email" id="email" value={profileData.role} disabled />  
       </div>
 
       <div className="profile-actions">

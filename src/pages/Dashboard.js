@@ -5,10 +5,15 @@ import {
   deleteUser,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  onAuthStateChanged
 } from "firebase/auth";
 import { ref, remove, onValue } from "firebase/database"; 
-import Chart from "chart.js/auto"; // Import Chart.js for visualizations
+import Chart from "chart.js/auto";
 import "./Dashboard.css";
+// Import role-specific components
+import { EmployerWidgets } from "../components/RoleWidgets/EmployerWidgets";
+import { FreelancerWidgets } from "../components/RoleWidgets/FreelancerWidgets";
+
 
 const Dashboard = () => {
   const location = useLocation();
@@ -17,21 +22,39 @@ const Dashboard = () => {
 
   const [taxData, setTaxData] = useState({});
   const [incomeData, setIncomeData] = useState([]);
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
-    // Fetch income and tax data from the database (example)
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      const taxRef = ref(db, "taxData/" + userId);
-      onValue(taxRef, (snapshot) => {
-        setTaxData(snapshot.val() || {});
-      });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userId = user.uid;
 
-      const incomeRef = ref(db, "incomeEntries/" + userId);
-      onValue(incomeRef, (snapshot) => {
-        setIncomeData(snapshot.val() || []);
-      });
-    }
+        const userRef = ref(db, "users/" + userId);
+        onValue(userRef, (snapshot) => {
+          const userData = snapshot.val();
+          if (userData) {
+            setUserRole(userData.role || "No role assigned");
+          }
+        });
+
+        const taxRef = ref(db, "taxData/" + userId);
+        onValue(taxRef, (snapshot) => {
+          setTaxData(snapshot.val() || {});
+        });
+
+        const incomeRef = ref(db, "incomeEntries/" + userId);
+        onValue(incomeRef, (snapshot) => {
+          setIncomeData(snapshot.val() || []);
+        });
+      } else {
+        // User is signed out
+        setUserRole(""); // Reset role or handle as needed
+        setTaxData({});
+        setIncomeData([]);
+      }
+    });
+
+    return () => unsubscribe(); // Clean up the subscription
   }, []);
 
   const reauthenticate = async () => {
@@ -92,28 +115,6 @@ const Dashboard = () => {
     }
   };
 
-  // Render tax and income charts using Chart.js
-  useEffect(() => {
-    if (incomeData.length > 0) {
-      const ctx = document.getElementById("incomeChart").getContext("2d");
-      new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: incomeData.map((entry) => entry.date),
-          datasets: [
-            {
-              label: "Income",
-              data: incomeData.map((entry) => entry.amount),
-              borderColor: "#4caf50",
-              backgroundColor: "#4caf5070",
-              fill: true,
-            },
-          ],
-        },
-      });
-    }
-  }, [incomeData]);
-
   return (
     <div className="dashboard-container">
       <nav className="navbar">
@@ -132,29 +133,15 @@ const Dashboard = () => {
 
       <div className="welcome-container">
         <h1>Welcome, {firstname}!</h1>
+        <p>Your role: {userRole}</p> {/* Display the user's role here */}
       </div>
 
       <div className="dashboard-widgets">
-        {/* Tax Summary Widget */}
-        <div className="widget">
-          <h2>Tax Summary</h2>
-          <p>Estimated Taxes: ${taxData.estimatedTaxes || "N/A"}</p>
-          <p>Total Income: ${taxData.totalIncome || "N/A"}</p>
-        </div>
-
-        {/* Income Tracking Chart */}
-        <div className="widget">
-          <h2>Income Over Time</h2>
-          <canvas id="incomeChart"></canvas>
-        </div>
-
-        {/* Daily Income Entry */}
-        <div className="widget">
-          <h2>Add Daily Income</h2>
-          <Link to="/daily-income" className="dashboard-btn">
-            Add Income
-          </Link>
-        </div>
+        {userRole === "Freelancer" ? (
+          <FreelancerWidgets taxData={taxData} incomeData={incomeData} />
+        ) : (
+          <EmployerWidgets />
+        )}
       </div>
     </div>
   );

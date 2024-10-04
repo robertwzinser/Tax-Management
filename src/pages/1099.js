@@ -1,176 +1,90 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database"; // For fetching/saving data
 import { auth, db } from "../firebase";
-import { useNavigate } from "react-router-dom";
+import { ref, onValue } from "firebase/database";
+import "./1099.css";
 
-const DailyIncome = () => {
-  const [employers, setEmployers] = useState([]);
-  const [selectedClient, setSelectedClient] = useState("");
-  const [service, setService] = useState("");
-  const [amount, setAmount] = useState(0);
-  const [date, setDate] = useState("");
-  const [estimatedTax, setEstimatedTax] = useState(0);
+const Generate1099 = () => {
   const [incomeData, setIncomeData] = useState([]);
-  const navigate = useNavigate();
+  const [profileData, setProfileData] = useState({
+    firstname: "",
+    lastname: "",
+    address: "",
+    profession: "",
+  });
+  const [clientsOverThreshold, setClientsOverThreshold] = useState([]);
 
-  // Fetch employers from the database
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
-      const employersRef = ref(db, "employers/" + userId);
-      onValue(employersRef, (snapshot) => {
+      // Fetch profile data
+      const userRef = ref(db, "users/" + userId);
+      onValue(userRef, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          setEmployers(Object.values(data)); // Assume employers are stored as an object with client details
-        }
+        setProfileData(data || {});
       });
-    }
-  }, []);
 
-  // Fetch income entries from the database for the logged-in user
-  useEffect(() => {
-    const userId = auth.currentUser?.uid;
-    if (userId) {
+      // Fetch income data
       const incomeRef = ref(db, "incomeEntries/" + userId);
       onValue(incomeRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          setIncomeData(Object.values(data)); // Assuming income entries are stored as objects
+          const incomeList = Object.values(data);
+          setIncomeData(incomeList);
         }
       });
     }
   }, []);
 
-  // Calculate estimated tax based on the amount
   useEffect(() => {
-    const taxRate = 0.2; // Example tax rate
-    setEstimatedTax(amount * taxRate);
-  }, [amount]);
+    // Filter clients with income over $600
+    const filteredClients = incomeData.filter((entry) => entry.amount > 600);
+    setClientsOverThreshold(filteredClients);
+  }, [incomeData]);
 
-  // Handle income submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const userId = auth.currentUser?.uid;
-    if (!userId) {
-      alert("You must be logged in to submit income entries.");
+  const handleGenerate = () => {
+    if (clientsOverThreshold.length === 0) {
+      alert("No clients with income over $600.");
       return;
     }
 
-    // Validate inputs
-    if (!selectedClient || !service || !amount || !date) {
-      alert("Please fill in all fields.");
-      return;
-    }
+    const form1099 = clientsOverThreshold.map((client) => ({
+      clientName: client.client,
+      totalIncome: client.amount,
+      userName: profileData.firstname + " " + profileData.lastname,
+      address: profileData.address,
+      profession: profileData.profession,
+    }));
 
-    // Push the new income entry to the database
-    const incomeEntry = {
-      client: selectedClient,
-      service,
-      amount: parseFloat(amount),
-      date,
-      estimatedTax,
-    };
-
-    const incomeRef = ref(db, "incomeEntries/" + userId);
-    try {
-      await push(incomeRef, incomeEntry);
-      alert("Daily income added successfully!");
-      navigate("/dashboard"); // Redirect to the dashboard after submission
-    } catch (error) {
-      console.error("Error submitting daily income:", error.message);
-      alert("Error submitting daily income. Please try again.");
-    }
-  };
-
-  // Function to aggregate income by client and filter for 1099 threshold
-  const generate1099Data = () => {
-    const clientIncome = {};
-
-    // Sum up income by client
-    incomeData.forEach((entry) => {
-      if (clientIncome[entry.client]) {
-        clientIncome[entry.client] += entry.amount;
-      } else {
-        clientIncome[entry.client] = entry.amount;
-      }
-    });
-
-    // Filter for clients who paid over $600
-    const clientsOverThreshold = Object.entries(clientIncome).filter(
-      ([client, totalIncome]) => totalIncome > 600
-    );
-
-    console.log("Clients who need 1099:", clientsOverThreshold);
-
-    // Return the data for further use (e.g., passing it to the 1099 generator)
-    return clientsOverThreshold;
+    console.log("Generated 1099 form data:", form1099);
+    // Trigger PDF download or form rendering 
   };
 
   return (
-    <div className="daily-income-container">
-      <h1>Log Your Daily Income</h1>
-
-      <form onSubmit={handleSubmit} className="income-form">
-        <label htmlFor="client">Select Employer:</label>
-        <select
-          id="employer"
-          value={selectedClient}
-          onChange={(e) => setSelectedClient(e.target.value)}
-          required
-        >
-          <option value="">-- Select an Employer --</option>
-          {employers.map((client, index) => (
-            <option key={index} value={client.name}>
-              {client.name}
-            </option>
-          ))}
-        </select>
-
-        <label htmlFor="service">Service Rendered:</label>
-        <input
-          type="text"
-          id="service"
-          value={service}
-          onChange={(e) => setService(e.target.value)}
-          placeholder="Describe the service"
-          required
-        />
-
-        <label htmlFor="amount">Amount Earned ($):</label>
-        <input
-          type="number"
-          id="amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Enter amount earned"
-          required
-        />
-
-        <label htmlFor="date">Date of Service:</label>
-        <input
-          type="date"
-          id="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-        />
-
-        <div className="estimated-tax">
-          <p>
-            Estimated Tax Liability: <strong>${estimatedTax.toFixed(2)}</strong>
-          </p>
-        </div>
-
-        <button type="submit" className="submit-btn">
-          Submit Income
-        </button>
-      </form>
-
-      <button onClick={generate1099Data} className="generate-1099-btn">
-        Generate 1099 Data
-      </button>
+    <div className="generate-1099-container">
+      <h1>Generate 1099 Form</h1>
+      <div className="generate-1099-info">
+        <p>Name: {profileData.firstname} {profileData.lastname}</p>
+        <p>Address: {profileData.address}</p>
+        <p>Profession: {profileData.profession}</p>
+      </div>
+      <div className="generate-1099-clients">
+        <h2>Clients Over $600</h2>
+        {clientsOverThreshold.length === 0 ? (
+          <p>No clients exceed the $600 threshold.</p>
+        ) : (
+          <ul>
+            {clientsOverThreshold.map((client, index) => (
+              <li key={index}>
+                {client.client}: ${client.amount.toFixed(2)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <button onClick={handleGenerate} className="generate-btn">Generate 1099</button>
     </div>
   );
 };
 
-export default DailyIncome;
+export default Generate1099;
+

@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import UserSettings from "./pages/UserSettings";
 import DailyIncome from "./pages/DailyIncome";
+import JobBoard from "./pages/JobBoard";
 
 import './App.css';
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/user-settings" element={<UserSettings />} />
         <Route path="/daily-income" element={<DailyIncome />} />
+        <Route path="/job-board" element={<JobBoard />} />
       </Routes>
     </Router>
   );

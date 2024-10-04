@@ -132,7 +132,7 @@ const SignUp = () => {
         <div class="roleselector">
           <select onChange={onChange} id="role" value={role}>
             <option value="Employer">Employer</option>
-            <option value="Freelancer">Freelancer</option>
+            <option value="Contractor">Contractor</option>
           </select>
         </div>
       </div>

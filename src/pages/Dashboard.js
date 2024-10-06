@@ -122,6 +122,9 @@ const Dashboard = () => {
           Dashboard
         </Link>
         <div className="right-buttons">
+        <Link to="/expenses" className="nav-item profile-btn">
+            Expenses 
+          </Link>
           <Link to="/profile" className="nav-item profile-btn">
             Profile
           </Link>

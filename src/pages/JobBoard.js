@@ -101,7 +101,7 @@ const JobBoard = () => {
   // Contractor accepts a job
   const handleAcceptJob = async (jobId) => {
     const userId = auth.currentUser?.uid;
-    if (!userId || userRole !== "Contractor") return; // Only contractors can accept jobs
+    if (!userId || userRole !== "Freelancer") return; // Only contractors can accept jobs
 
     const jobRef = ref(db, `jobs/${jobId}`);
     try {
@@ -202,12 +202,12 @@ const JobBoard = () => {
                       <button onClick={() => handleEditJob(id)}>Save Changes</button>
                     </div>
                   )}
-                  {job.freelancerId && <p>Job accepted by contractor.</p>}
+                  {job.freelancerId && <p>Job accepted by freelancer.</p>}
                 </>
               )}
 
               {/* Contractor can accept the job */}
-              {userRole === "Contractor" && job.status === "open" && (
+              {userRole === "Freelancer" && job.status === "open" && (
                 <button onClick={() => handleAcceptJob(id)} className="accept-btn">
                   Accept Job
                 </button>

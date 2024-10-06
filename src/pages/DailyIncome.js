@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database"; // For fetching/saving data
+import { ref, onValue, push } from "firebase/database";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
@@ -13,23 +13,23 @@ const DailyIncome = () => {
   const [estimatedTax, setEstimatedTax] = useState(0);
   const navigate = useNavigate();
 
-  // Fetch employers from the database
+  // Fetch linked employers from Firebase for the freelancer
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
-      const employersRef = ref(db, "employers/" + userId);
-      onValue(employersRef, (snapshot) => {
+      const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
+      onValue(linkedEmployersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          setEmployers(Object.values(data)); // Assume employers are stored as an object with client details
+          setEmployers(Object.keys(data)); // Set employers as an array of employer IDs
         }
       });
     }
   }, []);
 
-  // Handle real-time tax calculation (e.g., a 20% estimate)
+  // Handle real-time tax calculation (e.g., 20% estimate)
   useEffect(() => {
-    const taxRate = 0.2; // Replace with the instance-specific tax rate
+    const taxRate = 0.2;
     setEstimatedTax(amount * taxRate);
   }, [amount]);
 
@@ -61,7 +61,7 @@ const DailyIncome = () => {
     try {
       await push(incomeRef, incomeEntry);
       alert("Daily income added successfully!");
-      navigate("/dashboard"); // Redirect to the dashboard after submission
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error submitting daily income:", error.message);
       alert("Error submitting daily income. Please try again.");
@@ -81,9 +81,9 @@ const DailyIncome = () => {
           required
         >
           <option value="">-- Select an Employer --</option>
-          {employers.map((client, index) => (
-            <option key={index} value={client.name}>
-              {client.name}
+          {employers.map((employerId, index) => (
+            <option key={index} value={employerId}>
+              {employerId}
             </option>
           ))}
         </select>

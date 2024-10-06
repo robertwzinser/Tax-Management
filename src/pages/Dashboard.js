@@ -128,8 +128,7 @@ const Dashboard = () => {
           <Link to="/user-settings" className="nav-item settings-btn">
             Settings
           </Link>
-          <div className="right-buttons"></div>
-          <Link to="/generate-1099" className="nav-item generate-btn">
+          <Link to="/generate-1099" className="nav-item settings-btn">
             Generate 1099
           </Link>
         </div>

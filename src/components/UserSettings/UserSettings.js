@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../firebase"; 
-import { ref, get } from "firebase/database"; 
+import { auth, db } from "../../firebase";
+import { ref, get } from "firebase/database";
 import EmailVerification from "./EmailVerification";
 import MFASetup from "./MFASetup";
 import DeleteAccount from "./DeleteAccount";
@@ -9,20 +9,20 @@ import "./UserSettings.css";
 
 const UserSettings = () => {
   const [firstname, setFirstname] = useState("");
-  const [isEmailVerified, setIsEmailVerified] = useState(false); 
-  const [loading, setLoading] = useState(true); 
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuthState = () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
-            await user.reload(); 
-            setIsEmailVerified(user.emailVerified); 
+            await user.reload();
+            setIsEmailVerified(user.emailVerified);
 
             // Fetch user's first name from Firebase Realtime Database
             const userId = user.uid;
-            const userRef = ref(db, `users/${userId}`); 
+            const userRef = ref(db, `users/${userId}`);
             const snapshot = await get(userRef);
             if (snapshot.exists()) {
               const userData = snapshot.val();
@@ -44,7 +44,7 @@ const UserSettings = () => {
 
   // display content after loading is complete
   if (loading) {
-    return <p></p>; 
+    return <p></p>;
   }
 
   return (

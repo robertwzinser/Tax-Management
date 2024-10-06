@@ -9,7 +9,10 @@ const Messaging = ({ employerId, contractorId, jobId }) => {
 
   // Fetch messages from Firebase based on employer, contractor, and jobId
   useEffect(() => {
-    const messagesRef = ref(db, `messages/${employerId}/${contractorId}/${jobId}`);
+    const messagesRef = ref(
+      db,
+      `messages/${employerId}/${contractorId}/${jobId}`
+    );
     onValue(messagesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -22,7 +25,10 @@ const Messaging = ({ employerId, contractorId, jobId }) => {
 
   // Handle sending messages to Firebase
   const handleSendMessage = async () => {
-    const messageRef = ref(db, `messages/${employerId}/${contractorId}/${jobId}`);
+    const messageRef = ref(
+      db,
+      `messages/${employerId}/${contractorId}/${jobId}`
+    );
     const newMessage = {
       senderId: userId,
       text: message,
@@ -42,7 +48,12 @@ const Messaging = ({ employerId, contractorId, jobId }) => {
       <h2>Messages</h2>
       <div className="message-list">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`message-item ${msg.senderId === userId ? "sent" : "received"}`}>
+          <div
+            key={idx}
+            className={`message-item ${
+              msg.senderId === userId ? "sent" : "received"
+            }`}
+          >
             <p>{msg.text}</p>
           </div>
         ))}
@@ -53,7 +64,9 @@ const Messaging = ({ employerId, contractorId, jobId }) => {
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       />
-      <button className="send-btn" onClick={handleSendMessage}>Send</button>
+      <button className="send-btn" onClick={handleSendMessage}>
+        Send
+      </button>
     </div>
   );
 };

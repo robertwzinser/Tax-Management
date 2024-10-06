@@ -1,0 +1,90 @@
+.expenses-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Expenses content styling */
+.expenses-content {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Expense Form Styling */
+.expense-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.expense-item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.expense-item label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.expense-item select,
+.expense-item input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Buttons Styling */
+button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 200px;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Add and Remove Buttons */
+.expense-item button {
+  background-color: #f44336;
+  margin-top: 10px;
+}
+
+.expense-item button:hover {
+  background-color: #e53935;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .expenses-container {
+    padding: 10px;
+  }
+
+  .expenses-content {
+    width: 100%;
+  }
+
+  .expense-form {
+    width: 100%;
+  }
+}

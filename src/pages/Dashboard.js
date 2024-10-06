@@ -5,21 +5,17 @@ import {
   deleteUser,
   reauthenticateWithCredential,
   EmailAuthProvider,
-  onAuthStateChanged
+  onAuthStateChanged,
 } from "firebase/auth";
-import { ref, remove, onValue } from "firebase/database"; 
-import Chart from "chart.js/auto";
+import { ref, remove, onValue } from "firebase/database";
 import "./Dashboard.css";
 // Import role-specific components
 import { EmployerWidgets } from "../components/RoleWidgets/EmployerWidgets";
 import { FreelancerWidgets } from "../components/RoleWidgets/FreelancerWidgets";
 
-
 const Dashboard = () => {
-  const location = useLocation();
-  const { firstname } = location.state || { firstname: "User" }; // Default if no name passed
   const navigate = useNavigate();
-
+  const [firstname, setFirstname] = useState("User"); // Default to "User"
   const [taxData, setTaxData] = useState({});
   const [incomeData, setIncomeData] = useState([]);
   const [userRole, setUserRole] = useState("");
@@ -34,6 +30,7 @@ const Dashboard = () => {
           const userData = snapshot.val();
           if (userData) {
             setUserRole(userData.role || "No role assigned");
+            setFirstname(userData.firstname || "User"); // Fetch firstname from Firebase
           }
         });
 
@@ -117,30 +114,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <nav className="navbar">
-        <Link to="/dashboard" className="nav-item left">
-          Dashboard
-        </Link>
-        <Link to="/job-board" className="nav-item center">
-          Job Board
-        </Link>
-        <div className="right-buttons">
-        <Link to="/expenses" className="nav-item profile-btn">
-            Expenses 
-          </Link>
-          <Link to="/profile" className="nav-item profile-btn">
-            Profile
-          </Link>
-          <Link to="/user-settings" className="nav-item settings-btn">
-            Settings
-          </Link>
-          <Link to="/generate-1099" className="nav-item settings-btn">
-            Generate 1099
-          </Link>
-        </div>
-      </nav>
-
-      <div className="welcome-container">
+      <div>
         <h1>Welcome, {firstname}!</h1>
         <p>Your role: {userRole}</p> {/* Display the user's role here */}
       </div>

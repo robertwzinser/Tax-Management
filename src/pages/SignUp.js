@@ -3,7 +3,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { ref, set } from "firebase/database"; 
+import { ref, set } from "firebase/database";
 import "./SignUp.css";
 
 const SignUp = () => {
@@ -13,13 +13,14 @@ const SignUp = () => {
     lastname: "",
     email: "",
     password: "",
-    role: "Employer",
+    role: "", // Default empty role, to force selection
+    businessName: "", // New business name for employers
   });
 
-  const navigate = useNavigate(); 
-  const { firstname, lastname, email, password, role } = formData;
+  const navigate = useNavigate();
+  const { firstname, lastname, email, password, role, businessName } = formData;
 
-  // Update text in back-end when typing in form data
+  // Update form data when typing in input fields
   const onChange = (e) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -30,6 +31,13 @@ const SignUp = () => {
   // Register user with Firebase auth and store additional data in Realtime Database
   const onSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent submission if the user has not selected a valid role
+    if (role === "") {
+      alert("Please select an account type.");
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -38,13 +46,21 @@ const SignUp = () => {
       );
       const user = userCredential.user;
 
-      // Store user details in Realtime Database
-      await set(ref(db, "users/" + user.uid), {
+      // Data to store in Firebase, including the business name if the user is an employer
+      const userData = {
         firstname,
         lastname,
         email,
-        role
-      });
+        role,
+      };
+
+      // If the user is an employer, include the business name in their data
+      if (role === "Employer") {
+        userData.businessName = businessName;
+      }
+
+      // Store user details in Realtime Database
+      await set(ref(db, "users/" + user.uid), userData);
 
       // Show browser confirmation popup
       const confirmation = window.confirm(
@@ -119,8 +135,38 @@ const SignUp = () => {
             )}
           </div>
 
-          {/* Universal submit button */}
-          <button type="submit">Register</button>
+          {/* Role selection dropdown */}
+          <div className="roleselector">
+            <select
+              onChange={onChange}
+              id="role"
+              value={role}
+              required
+              style={{ marginTop: "10px" }}
+            >
+              <option value="">Select an account type</option>{" "}
+              {/* Default option */}
+              <option value="Employer">Employer</option>
+              <option value="Freelancer">Freelancer</option>
+            </select>
+          </div>
+
+          {/* Business Name input (only visible for Employers) */}
+          {role === "Employer" && (
+            <input
+              type="text"
+              id="businessName"
+              value={businessName}
+              onChange={onChange}
+              placeholder="Business Name"
+              required
+            />
+          )}
+
+          {/* Submit button */}
+          <button className="custom-btn" type="submit">
+            Register
+          </button>
         </form>
 
         {/* Links container */}
@@ -128,12 +174,6 @@ const SignUp = () => {
           <p className="sign-in-text">
             Already have an account? <Link to="/sign-in">Sign In!</Link>
           </p>
-        </div>
-        <div class="roleselector">
-          <select onChange={onChange} id="role" value={role}>
-            <option value="Employer">Employer</option>
-            <option value="Freelancer">Freelancer</option>
-          </select>
         </div>
       </div>
     </section>

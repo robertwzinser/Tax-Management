@@ -16,7 +16,7 @@ const SignIn = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const { email, password, role } = formData;
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   // Update form data when typing
   const onChange = (e) => {
@@ -104,7 +104,9 @@ const SignIn = () => {
           </div>
 
           {/* Submit button */}
-          <button type="submit">Sign in</button>
+          <button className="custom-btn" type="submit">
+            Sign in
+          </button>
 
           {/* Links container */}
           <div className="link-container">

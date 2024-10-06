@@ -125,6 +125,9 @@ const Dashboard = () => {
           Job Board
         </Link>
         <div className="right-buttons">
+        <Link to="/expenses" className="nav-item profile-btn">
+            Expenses 
+          </Link>
           <Link to="/profile" className="nav-item profile-btn">
             Profile
           </Link>

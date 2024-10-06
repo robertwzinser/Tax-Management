@@ -10,6 +10,7 @@ import JobBoard from "./pages/JobBoard";
 import Generate1099 from './pages/1099';
 
 import './App.css';
+import Expenses from './pages/Expenses';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/user-settings" element={<UserSettings />} />
         <Route path="/daily-income" element={<DailyIncome />} />
+        <Route path="/expenses" element={<Expenses />} />
         <Route path="/job-board" element={<JobBoard />} />
         <Route path="/generate-1099" element={<Generate1099 />} />
       </Routes>

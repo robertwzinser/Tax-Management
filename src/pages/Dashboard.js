@@ -121,6 +121,9 @@ const Dashboard = () => {
         <Link to="/dashboard" className="nav-item left">
           Dashboard
         </Link>
+        <Link to="/job-board" className="nav-item center">
+          Job Board
+        </Link>
         <div className="right-buttons">
         <Link to="/expenses" className="nav-item profile-btn">
             Expenses 
@@ -130,6 +133,9 @@ const Dashboard = () => {
           </Link>
           <Link to="/user-settings" className="nav-item settings-btn">
             Settings
+          </Link>
+          <Link to="/generate-1099" className="nav-item settings-btn">
+            Generate 1099
           </Link>
         </div>
       </nav>

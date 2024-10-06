@@ -1,0 +1,181 @@
+/* General Job Board Layout */
+.job-board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Job Form Styling */
+.job-form {
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+.job-form input,
+.job-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.submit-btn,
+.accept-btn,
+button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.submit-btn:hover,
+.accept-btn:hover,
+button:hover {
+  background-color: #45a049;
+}
+
+/* Job List Styling */
+.job-list {
+  width: 100%;
+  max-width: 600px;
+}
+
+.job-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.job-item h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.job-item p {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+/* Job Edit Section */
+.job-item input,
+.job-item textarea {
+  margin-top: 10px;
+  padding: 8px;
+  width: 100%;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.job-item button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 14px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.job-item button:hover {
+  background-color: #45a049;
+}
+
+/* Messaging Section */
+.message-section {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 30px;
+}
+
+.message-section h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.message-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+  max-width: 70%;
+}
+
+.message-item.sent {
+  background-color: #c8e6c9; /* Green for sent messages */
+  margin-left: auto;
+  text-align: right;
+}
+
+.message-item.received {
+  background-color: #ffcdd2; /* Red for received messages */
+  margin-right: auto;
+  text-align: left;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button.send-btn {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button.send-btn:hover {
+  background-color: #45a049;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .job-form,
+  .job-list,
+  .message-section {
+    max-width: 100%;
+  }
+
+  textarea {
+    font-size: 14px;
+  }
+
+  .message-item {
+    font-size: 14px;
+    max-width: 90%;
+  }
+}

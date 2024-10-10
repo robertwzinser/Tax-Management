@@ -1,47 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { ref, onValue } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState } from "react";
+import { getDatabase, ref, push, set, serverTimestamp } from "firebase/database";
 import { auth, db } from "../firebase";
-import "./Expenses.css";
+import "./Expenses.css"; // Import the same CSS file to maintain consistency
 
 const Expenses = () => {
-  const [inputs, setInputs] = useState([{ category: "", expense: "0" }]);
-  const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUserRole = async (userId) => {
-      const userRef = ref(db, "users/" + userId);
-      onValue(userRef, (snapshot) => {
-        const userData = snapshot.val();
-        if (userData) {
-          setUserRole(userData.role);
-        }
-        setLoading(false);
-      });
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userId = user.uid;
-        fetchUserRole(userId);
-      } else {
-        setUserRole("");
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const [category, setCategory] = useState("");
+  const [inputs, setInputs] = useState([{ category: "", expense: 0 }]);
 
   const addInput = () => {
-    setInputs([...inputs, { category: "", expense: "0" }]);
+    setInputs([...inputs, { category: "", expense: 0 }]);
   };
 
-  const removeInput = (currentIndex) => {
-    const filteredInputs = inputs.filter(
-      (input, index) => index !== currentIndex
-    );
+  const removeInputs = (currentIndex) => {
+    const filteredInputs = inputs.filter((input, index) => index !== currentIndex);
     setInputs(filteredInputs);
   };
 
@@ -51,15 +22,33 @@ const Expenses = () => {
     setInputs(inputData);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const formSubmit = async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (user.uid) {
+      inputs.map(async (input) => {
+        try {
+          const expenseRef = ref(db, "expenseCollection");
+          const newExpense = push(expenseRef);
+          await set(newExpense, {
+            category: input.category,
+            expense: input.expense,
+            date: serverTimestamp(),
+            userID: user.uid,
+          });
+          setInputs([{ category: "", expense: 0 }]);
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+  };
 
   return (
     <div className="expenses-container">
       <h1>Expenses</h1>
       <div className="expenses-content">
-        <form className="expense-form">
+        <form className="expense-form" onSubmit={(e) => formSubmit(e)}>
           {inputs.map((input, index) => (
             <div key={index} className="expense-item">
               <label htmlFor="category">Category:</label>
@@ -86,24 +75,29 @@ const Expenses = () => {
               <label htmlFor="expense">Expense:</label>
               <input
                 type="number"
-                placeholder="Enter expense"
-                name="expense"
+                placeholder="Choose your expense"
                 value={input.expense}
+                name="expense"
                 onChange={(e) => handleChange(e, index)}
               />
 
               {inputs.length > 1 && (
-                <button type="button" onClick={() => removeInput(index)}>
+                <button
+                  type="button"
+                  onClick={() => removeInputs(index)}
+                  className="remove-button"
+                >
                   Remove Expense
                 </button>
               )}
             </div>
           ))}
-
-          <button type="button" onClick={addInput}>
+          <button type="button" onClick={addInput} className="add-button">
             Add New Expense
           </button>
-          <button type="submit">Submit</button>
+          <button type="submit" className="submit-button">
+            Submit
+          </button>
         </form>
       </div>
     </div>

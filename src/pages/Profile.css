@@ -5,6 +5,8 @@
   justify-content: flex-start;
   padding: 20px;
   margin-top: 20px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text */
 }
 
 .profile-info {
@@ -16,6 +18,7 @@
 .profile-info label {
   margin-bottom: 5px;
   font-weight: bold;
+  color: #e0e0e0; /* Light label text */
 }
 
 .profile-info input {
@@ -24,7 +27,9 @@
   margin-bottom: 15px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid #555; /* Dark border for dark mode */
+  background-color: #1e1e1e; /* Dark background for inputs */
+  color: #e0e0e0; /* Light text in inputs */
 }
 
 .profile-actions {
@@ -35,19 +40,21 @@
 
 input {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid #555; /* Darker border for inputs */
   border-radius: 5px;
   font-size: 1rem;
+  background-color: #1e1e1e; /* Dark background */
+  color: #e0e0e0; /* Light text */
 }
 
 input:disabled {
-  background-color: #f0f0f0;
-  color: #888;
+  background-color: #333; /* Darker background for disabled inputs */
+  color: #888; /* Light grey text for disabled inputs */
 }
 
 /* Save Button Styling */
 .save-btn {
-  background-color: #4caf50;
+  background-color: #4caf50; /* Green button */
   color: white;
   padding: 10px;
   font-size: 16px;
@@ -58,7 +65,7 @@ input:disabled {
 }
 
 .save-btn:hover {
-  background-color: #45a049;
+  background-color: #45a049; /* Darker green on hover */
 }
 
 /* Cancel Button Styling */
@@ -74,12 +81,12 @@ input:disabled {
 }
 
 .cancel-btn:hover {
-  background-color: #e53935;
+  background-color: #e53935; /* Darker red on hover */
 }
 
 /* Message Styling */
 .message {
-  color: green;
+  color: #4caf50; /* Green for success messages */
   margin-bottom: 20px;
 }
 

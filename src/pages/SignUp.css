@@ -3,7 +3,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
-  background-color: #f4f4f4;
+  background-color: #121212; /* Dark background for the entire page */
+  color: #e0e0e0; /* Light text for dark mode */
 }
 
 /* Sign-up container */
@@ -18,9 +19,9 @@ body {
 }
 
 .sign-up-box {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(33, 33, 33, 0.9); /* Dark background with slight transparency */
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for dark mode */
   padding: 40px;
   max-width: 400px;
   width: 100%;
@@ -28,7 +29,7 @@ body {
 
 h1 {
   font-size: 28px;
-  color: #333;
+  color: #ffffff; /* Light header text */
   text-align: center;
   margin-bottom: 20px;
 }
@@ -36,49 +37,50 @@ h1 {
 /* Link for users to switch to sign-in */
 p {
   font-size: 14px;
-  color: #333;
+  color: #e0e0e0; /* Light text for paragraphs */
   text-align: center;
 }
 
 p a {
-  color: #333;
+  color: #61dafb; /* Light blue for links */
   text-decoration: none;
 }
 
 p a:hover {
-  color: #555;
+  color: #b3e5fc; /* Slightly lighter on hover */
 }
 
 /* Sign In text styling */
 .sign-in-text {
   font-size: 14px;
-  color: #333;
+  color: #e0e0e0; /* Light text for sign-in prompt */
   text-align: center;
   margin-bottom: 10px;
 }
 
 .sign-in-text a {
-  color: #007bff;
+  color: #61dafb; /* Light blue links */
   text-decoration: none;
   font-weight: bold;
 }
 
 .sign-in-text a:hover {
-  color: #0056b3;
+  color: #b3e5fc; /* Lighter blue on hover */
 }
 
+/* Custom Button Styling */
 .custom-btn {
   padding: 0.75rem 2rem;
   border: none;
   border-radius: 5px;
   font-size: 1rem;
   cursor: pointer;
-  background-color: #388e3c;
+  background-color: #295442; /* Green button for sign-up */
   color: white;
   transition: background-color 0.3s ease;
   max-width: 100%;
 }
 
 .custom-btn:hover {
-  background-color: #2e7d32;
+  background-color: #2e7d32; /* Darker green on hover */
 }

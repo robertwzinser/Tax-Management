@@ -5,6 +5,8 @@
   justify-content: flex-start;
   padding: 20px;
   margin-top: 20px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text color */
 }
 
 /* Expenses content styling */
@@ -34,6 +36,7 @@
 .expense-item label {
   margin-bottom: 5px;
   font-weight: bold;
+  color: #e0e0e0; /* Light label text */
 }
 
 .expense-item select,
@@ -43,26 +46,12 @@
   margin-bottom: 10px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid #555; /* Dark border for inputs */
+  background-color: #1e1e1e; /* Dark input background */
+  color: #e0e0e0; /* Light text in input */
 }
 
-/* Buttons Styling */
-button {
-  background-color: #4caf50;
-  color: white;
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-  max-width: 200px;
-  margin-top: 10px;
-}
 
-button:hover {
-  background-color: #45a049;
-}
 
 /* Add and Remove Buttons */
 .expense-item button {

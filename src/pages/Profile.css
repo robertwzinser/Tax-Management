@@ -1,73 +1,107 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  margin: 0;
-  padding: 0;
-}
-
 .profile-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  color: #2e7d32; 
-  text-align: center;
-  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  margin-top: 20px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text */
 }
 
 .profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 30px;
 }
 
-label {
+.profile-info label {
+  margin-bottom: 5px;
   font-weight: bold;
-  color: #333;
+  color: #e0e0e0; /* Light label text */
 }
 
-input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-}
-
-input:disabled {
-  background-color: #f0f0f0;
-  color: #888;
+.profile-info input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #555; /* Dark border for dark mode */
+  background-color: #1e1e1e; /* Dark background for inputs */
+  color: #e0e0e0; /* Light text in inputs */
 }
 
 .profile-actions {
   display: flex;
+  gap: 20px; /* Space between Save and Cancel buttons */
   justify-content: center;
-  margin-top: 2rem;
 }
 
-.edit-btn,
-.save-btn {
-  padding: 0.75rem 2rem;
-  border: none;
+input {
+  padding: 0.75rem;
+  border: 1px solid #555; /* Darker border for inputs */
   border-radius: 5px;
   font-size: 1rem;
-  cursor: pointer;
-  background-color: #388e3c;
+  background-color: #1e1e1e; /* Dark background */
+  color: #e0e0e0; /* Light text */
+}
+
+input:disabled {
+  background-color: #333; /* Darker background for disabled inputs */
+  color: #888; /* Light grey text for disabled inputs */
+}
+
+/* Save Button Styling */
+.save-btn {
+  background-color: #4caf50; /* Green button */
   color: white;
-  transition: background-color 0.3s ease;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  max-width: 200px;
 }
 
-.edit-btn:hover,
 .save-btn:hover {
-  background-color: #2e7d32;
+  background-color: #45a049; /* Darker green on hover */
 }
 
+/* Cancel Button Styling */
+.cancel-btn {
+  background-color: #f44336; /* Red color for cancel */
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  max-width: 200px;
+}
+
+.cancel-btn:hover {
+  background-color: #e53935; /* Darker red on hover */
+}
+
+/* Message Styling */
 .message {
-  text-align: center;
-  color: #388e3c;
-  margin-bottom: 1rem;
+  color: #4caf50; /* Green for success messages */
+  margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .profile-info {
+    max-width: 100%;
+  }
+
+  .profile-info input {
+    font-size: 14px;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    gap: 10px; /* Reduce gap on smaller screens */
+  }
 }

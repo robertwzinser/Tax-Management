@@ -5,11 +5,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #121212; /* Dark mode background */
+  color: #e0e0e0; /* Light text for dark mode */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+  color: #e0e0e0; /* Light text for code blocks in dark mode */
 }
 
 /* Styling scrollbars for Chrome, Edge, and Safari */
@@ -19,21 +22,21 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #2e2e2e; /* Dark background for scroll track */
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #888;
+  background-color: #555; /* Slightly lighter scrollbar thumb */
   border-radius: 10px; 
   border: 2px solid transparent; 
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555; /* color of the scroll thumb on hover */
+  background: #888; /* Lighten on hover for better visibility */
 }
 
 /* Styling scrollbars for Firefox */
 * {
   scrollbar-width: thin; /* "auto" or "thin" */
-  scrollbar-color: #888 #f1f1f1; /* thumb and track color */
+  scrollbar-color: #555 #2e2e2e; /* Dark thumb and dark track for consistency */
 }

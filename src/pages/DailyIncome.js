@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
 
 const DailyIncome = () => {
-  const [employers, setEmployers] = useState([]);
-  const [selectedClient, setSelectedClient] = useState("");
-  const [service, setService] = useState("");
-  const [amount, setAmount] = useState(0);
-  const [date, setDate] = useState("");
-  const [estimatedTax, setEstimatedTax] = useState(0);
+  const [employers, setEmployers] = useState([]); // Stores linked employers
+  const [selectedClient, setSelectedClient] = useState(""); // Selected employer
+  const [service, setService] = useState(""); // Service description
+  const [amount, setAmount] = useState(0); // Amount earned
+  const [date, setDate] = useState(""); // Date of service
+  const [estimatedTax, setEstimatedTax] = useState(0); // Estimated tax
   const navigate = useNavigate();
 
   // Fetch linked employers from Firebase for the freelancer
@@ -21,7 +21,12 @@ const DailyIncome = () => {
       onValue(linkedEmployersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          setEmployers(Object.keys(data)); // Set employers as an array of employer IDs
+          // Set employer business names from linkedEmployers data
+          const employersData = Object.entries(data).map(([id, employer]) => ({
+            id,
+            businessName: employer.name, // Use business name instead of personal name
+          }));
+          setEmployers(employersData); // Set employers with business names
         }
       });
     }
@@ -48,16 +53,19 @@ const DailyIncome = () => {
       return;
     }
 
-    // Push the new income entry to the database
+    // Prepare the income entry
     const incomeEntry = {
-      client: selectedClient,
       service,
       amount: parseFloat(amount),
       date,
       estimatedTax,
     };
 
-    const incomeRef = ref(db, "incomeEntries/" + userId);
+    // Store the income entry under the selected employer within linkedEmployers
+    const incomeRef = ref(
+      db,
+      `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`
+    );
     try {
       await push(incomeRef, incomeEntry);
       alert("Daily income added successfully!");
@@ -81,9 +89,9 @@ const DailyIncome = () => {
           required
         >
           <option value="">-- Select an Employer --</option>
-          {employers.map((employerId, index) => (
-            <option key={index} value={employerId}>
-              {employerId}
+          {employers.map((employer) => (
+            <option key={employer.id} value={employer.id}>
+              {employer.businessName} {/* Display business name */}
             </option>
           ))}
         </select>

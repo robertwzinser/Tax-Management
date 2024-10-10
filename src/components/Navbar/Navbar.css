@@ -1,0 +1,87 @@
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.content-container {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 20px;
+  background-color: #333;
+  border-radius: 5px;
+  width: 100%; /* Make the navbar take up the full width of its container */
+  max-width: 1200px; /* Limit the navbar's max width */
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between; /* Space between left and right sections */
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #1e1e1e;
+  border-radius: 5px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto; /* Center the navbar */
+}
+
+.left-buttons {
+  display: flex;
+  gap: 10px; /* Space between the left side buttons */
+}
+
+.right-buttons {
+  display: flex;
+  gap: 10px; /* Space between the right side buttons */
+}
+
+.nav-item {
+  color: white;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+.nav-item.left,
+.nav-item.center {
+  background-color: #295442;
+}
+
+.nav-item.left:hover,
+.nav-item.center:hover {
+  background-color: #1f4032;
+}
+
+.nav-item.profile-btn {
+  background-color: #f39c12; /* Orange for profile-related buttons */
+}
+
+.nav-item.profile-btn:hover {
+  background-color: #cc8310; /* Orange for profile-related buttons */
+}
+
+.nav-item.settings-btn {
+  background-color: #e74c3c; /* Red for settings buttons */
+}
+
+.nav-item.settings-btn:hover {
+  background-color: #ba3d30; /* Red for settings buttons */
+}

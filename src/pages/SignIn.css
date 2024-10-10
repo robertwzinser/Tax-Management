@@ -1,9 +1,9 @@
-/* Overall styling */
 body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
-  background-color: #f4f4f4;
+  background-color: #121212; /* Dark background for the entire page */
+  color: #e0e0e0; /* Light text for dark mode */
 }
 
 /* Sign-in container */
@@ -18,9 +18,9 @@ body {
 }
 
 .sign-in-box {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(33, 33, 33, 0.9); /* Dark background with slight transparency */
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for dark mode */
   padding: 40px;
   max-width: 400px;
   width: 100%;
@@ -29,7 +29,7 @@ body {
 /* Heading */
 h1 {
   font-size: 28px;
-  color: #333;
+  color: #ffffff; /* Light heading text */
   text-align: center;
   margin-bottom: 20px;
 }
@@ -37,36 +37,55 @@ h1 {
 /* Register text styling */
 .register-text {
   font-size: 14px;
-  color: #333;
+  color: #e0e0e0; /* Light text for the register prompt */
   text-align: center;
   margin-bottom: 10px;
 }
 
 .register-text a {
-  color: #007bff;
+  color: #61dafb; /* Light blue links */
   text-decoration: none;
   font-weight: bold;
 }
 
 .register-text a:hover {
-  color: #0056b3;
+  color: #b3e5fc; /* Lighter blue on hover */
 }
 
+/* Forgot Password text */
 .forgot-password-text {
   font-size: 14px;
-  color: #007bff;
+  color: #61dafb; /* Light blue text */
   text-align: center;
 }
 
 .forgot-password-text a {
-  color: #007bff;
+  color: #61dafb; /* Light blue links */
   text-decoration: none;
 }
 
 .forgot-password-text a:hover {
-  color: #0056b3;
+  color: #b3e5fc; /* Lighter blue on hover */
 }
 
+/* Role Selector */
 .roleselector {
   text-align: center;
+}
+
+/* Custom Button Styling */
+.custom-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #295442; /* Green button for sign-in */
+  color: white;
+  transition: background-color 0.3s ease;
+  max-width: 100%;
+}
+
+.custom-btn:hover {
+  background-color: #2e7d32; /* Darker green on hover */
 }

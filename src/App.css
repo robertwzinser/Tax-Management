@@ -14,14 +14,14 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #121212; /* Dark background */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: #e0e0e0; /* Light text for dark mode */
 }
 
 .App-link {
@@ -44,22 +44,18 @@ input {
   width: 100%;
   padding: 12px;
   margin-bottom: 20px;
-  border: 1px solid #ddd;
+  border: 1px solid #555; /* Darker border for dark mode */
   border-radius: 5px;
   font-size: 16px;
-  color: #555;
-  background-color: #fff;
+  color: #e0e0e0; /* Light text in input */
+  background-color: #1e1e1e; /* Dark background for inputs */
   transition: border-color 0.3s ease;
   box-sizing: border-box; /* Ensures padding and border are part of the width */
 }
 
 input:focus {
-  border-color: #333;
+  border-color: #888; /* Lighter border color on focus */
   outline: none;
-}
-
-button {
-  padding: 12px;
 }
 
 input::placeholder {
@@ -90,22 +86,54 @@ input::placeholder {
   right: 15px;
   top: 15px;
   cursor: pointer;
-  color: #555;
+  color: #888; /* Lighter icon color for dark mode */
 }
 
+.submit-btn,
+.accept-btn,
 button {
-  width: 100%;
-  margin-top: 5px;
-  padding: 12px;
-  background-color: #333;
+  background-color: #295442;
   color: white;
-  border: none;
-  border-radius: 5px;
+  padding: 10px 20px;
   font-size: 16px;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-radius: 4px;
+  margin: 10px auto;
+  display: block;
+  width: 100%;
+  max-width: 200px;
 }
 
+.submit-btn:hover,
+.accept-btn:hover,
 button:hover {
-  background-color: #555;
+  background-color: #1f4032;
+}
+
+
+/* Dark mode styling for select dropdowns globally */
+select {
+  background-color: #1e1e1e; /* Dark background */
+  color: #e0e0e0; /* Light text */
+  border: 1px solid #555; /* Darker border */
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%; /* Full width to match input size */
+}
+
+select option {
+  background-color: #1e1e1e; /* Dark background for options */
+  color: #e0e0e0; /* Light text */
+}
+
+/* Add hover and focus styles for select */
+select:focus {
+  outline: none;
+  border-color: #888; /* Lighter border on focus */
+}
+
+select:hover {
+  border-color: #888; /* Lighter border on hover */
 }

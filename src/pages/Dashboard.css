@@ -2,6 +2,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text color */
 }
 
 .dashboard-widgets {
@@ -10,17 +12,6 @@
   gap: 20px;
   width: 100%;
   max-width: 1200px;
-}
-
-.widget {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.widget h2 {
-  margin-bottom: 15px;
 }
 
 .actions-container {
@@ -35,10 +26,13 @@
   border: none;
   cursor: pointer;
   border-radius: 5px;
+  background-color: #2e2e2e; /* Button background in dark mode */
+  color: #ffffff; /* Button text color in dark mode */
+  transition: background-color 0.3s, opacity 0.3s; /* Smooth transition for hover effects */
 }
 
 .signout-btn {
-  background-color: #f44336;
+  background-color: #d32f2f; /* Slightly darker red for signout in dark mode */
   color: white;
 }
 
@@ -48,6 +42,7 @@
 }
 
 .dashboard-btn:hover {
+  background-color: #444444; /* Darker hover state for buttons */
   opacity: 0.9;
 }
 
@@ -62,3 +57,4 @@ canvas {
     grid-template-columns: 1fr;
   }
 }
+

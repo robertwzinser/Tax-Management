@@ -3,14 +3,14 @@ import { ref, onValue } from "firebase/database";
 import { auth, db } from "../../firebase";
 import { Link } from "react-router-dom";
 import Chart from "chart.js/auto";
+import './FreelancerWidgets.css'; // Assuming you're importing your CSS
 
 export const FreelancerWidgets = () => {
-  const [employers, setEmployers] = useState([]); // Stores linked employers
-  const [selectedEmployer, setSelectedEmployer] = useState(""); // State for selected employer
-  const [incomeData, setIncomeData] = useState([]); // State for income data of the selected employer
-  const [chartInstance, setChartInstance] = useState(null); // Store the Chart.js instance
+  const [employers, setEmployers] = useState([]); 
+  const [selectedEmployer, setSelectedEmployer] = useState(""); 
+  const [incomeData, setIncomeData] = useState([]); 
+  const [chartInstance, setChartInstance] = useState(null); 
 
-  // Fetch linked employers from Firebase for the freelancer
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
@@ -18,23 +18,19 @@ export const FreelancerWidgets = () => {
       onValue(linkedEmployersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          // Set employer business names from linkedEmployers data
           const employersData = Object.entries(data).map(([id, employer]) => ({
             id,
-            businessName: employer.name, // Use business name instead of personal name
+            businessName: employer.name,
           }));
-          setEmployers(employersData); // Set employers with business names
+          setEmployers(employersData);
         }
       });
     }
   }, []);
 
-  // Handle employer selection
   const handleEmployerChange = (e) => {
     const employerId = e.target.value;
     setSelectedEmployer(employerId);
-
-    // Set the income data for the selected employer
     if (employers.find((employer) => employer.id === employerId)) {
       const employerDataRef = ref(
         db,
@@ -54,29 +50,44 @@ export const FreelancerWidgets = () => {
     }
   };
 
-  // Function to create or update the income chart
+  const aggregateIncomeByDate = (entries) => {
+    const aggregated = {};
+    entries.forEach((entry) => {
+      if (aggregated[entry.date]) {
+        aggregated[entry.date].amount += entry.amount;
+        aggregated[entry.date].estimatedTax += entry.estimatedTax;
+      } else {
+        aggregated[entry.date] = {
+          amount: entry.amount,
+          estimatedTax: entry.estimatedTax,
+        };
+      }
+    });
+    return Object.entries(aggregated).map(([date, { amount, estimatedTax }]) => ({
+      date,
+      amount,
+      estimatedTax,
+    }));
+  };
+
   const createIncomeChart = () => {
     const ctx = document.getElementById("incomeChart").getContext("2d");
-
-    // Destroy existing chart instance if it exists
     if (chartInstance) {
       chartInstance.destroy();
     }
-
+    const aggregatedData = aggregateIncomeByDate(incomeData);
     const chartData = {
-      labels: incomeData.map((entry) => entry.date), // X-axis (dates)
+      labels: aggregatedData.map((entry) => entry.date),
       datasets: [
         {
           label: "Income",
-          data: incomeData.map((entry) => entry.amount), // Y-axis (amounts)
+          data: aggregatedData.map((entry) => entry.amount),
           backgroundColor: "rgba(75, 192, 192, 0.2)",
           borderColor: "rgba(75, 192, 192, 1)",
           borderWidth: 1,
         },
       ],
     };
-
-    // Create new chart instance
     const newChartInstance = new Chart(ctx, {
       type: "line",
       data: chartData,
@@ -89,12 +100,9 @@ export const FreelancerWidgets = () => {
         },
       },
     });
-
-    // Set the new chart instance to state
     setChartInstance(newChartInstance);
   };
 
-  // Redraw the chart whenever income data changes
   useEffect(() => {
     if (incomeData.length > 0) {
       createIncomeChart();
@@ -102,10 +110,10 @@ export const FreelancerWidgets = () => {
   }, [incomeData]);
 
   return (
-    <>
-      <div className="widget">
+    <div className="freelancer-widgets">
+      <div className="card">
         <h2>Select Employer</h2>
-        <select onChange={handleEmployerChange} value={selectedEmployer}>
+        <select onChange={handleEmployerChange} value={selectedEmployer} className="custom-select">
           <option value="">-- Select an Employer --</option>
           {employers.map((employer) => (
             <option key={employer.id} value={employer.id}>
@@ -115,35 +123,29 @@ export const FreelancerWidgets = () => {
         </select>
       </div>
 
-      <div className="widget">
-        <h2>
-          Income Summary for{" "}
-          {selectedEmployer
-            ? employers.find((e) => e.id === selectedEmployer)?.businessName
-            : "Selected Employer"}
-        </h2>
-        <p>
-          Total Income: $
-          {incomeData.reduce((acc, curr) => acc + curr.amount, 0) || "N/A"}
-        </p>
-        <p>
-          Estimated Taxes: $
-          {incomeData.reduce((acc, curr) => acc + curr.estimatedTax, 0) ||
-            "N/A"}
-        </p>
+      <div className="card income-summary">
+        <h2>Income Summary for {selectedEmployer ? employers.find((e) => e.id === selectedEmployer)?.businessName : "Selected Employer"}</h2>
+        <div className="summary-info">
+          <div className="summary-item">
+            <h3>Total Income</h3>
+            <p>${incomeData.reduce((acc, curr) => acc + curr.amount, 0) || "N/A"}</p>
+          </div>
+          <div className="summary-item">
+            <h3>Estimated Taxes</h3>
+            <p style={{ color: '#e74c3c' }}>${incomeData.reduce((acc, curr) => acc + curr.estimatedTax, 0) || "N/A"}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="widget">
+      <div className="card">
         <h2>Income Over Time</h2>
         <canvas id="incomeChart"></canvas>
       </div>
 
-      <div className="widget">
+      <div className="card">
         <h2>Add Daily Income</h2>
-        <Link to="/daily-income" className="dashboard-btn">
-          Add Income
-        </Link>
+        <Link to="/daily-income" className="dashboard-btn">Add Income</Link>
       </div>
-    </>
+    </div>
   );
 };

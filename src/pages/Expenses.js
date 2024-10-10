@@ -1,14 +1,34 @@
-import { useState } from "react";
-import { getDatabase, ref, push, set, serverTimestamp } from "firebase/database";
-import { auth, db } from "../firebase";
-import "./Expenses.css"; // Import the same CSS file to maintain consistency
+import { useState, useEffect } from "react";
+import { getDatabase, ref, push, set, serverTimestamp, onValue } from "firebase/database";
+import { auth } from "../firebase";
+import "./Expenses.css";
 
 const Expenses = () => {
-  const [category, setCategory] = useState("");
-  const [inputs, setInputs] = useState([{ category: "", expense: 0 }]);
+  const [inputs, setInputs] = useState([{ category: "", expense: 0, date: "", employer: "" }]);
+  const [totalExpenses, setTotalExpenses] = useState(0); // New state for tracking total expenses
+  const [employers, setEmployers] = useState([]); // New state to store the employers
+  const [selectedEmployer, setSelectedEmployer] = useState(""); // Store selected employer
+
+  // Fetch employers when the component mounts
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      const linkedEmployersRef = ref(getDatabase(), `users/${userId}/linkedEmployers`);
+      onValue(linkedEmployersRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const employersData = Object.entries(data).map(([id, employer]) => ({
+            id,
+            businessName: employer.name,
+          }));
+          setEmployers(employersData);
+        }
+      });
+    }
+  }, []);
 
   const addInput = () => {
-    setInputs([...inputs, { category: "", expense: 0 }]);
+    setInputs([...inputs, { category: "", expense: 0, date: "", employer: "" }]);
   };
 
   const removeInputs = (currentIndex) => {
@@ -22,21 +42,29 @@ const Expenses = () => {
     setInputs(inputData);
   };
 
+  // Calculate total expenses whenever inputs change
+  useEffect(() => {
+    const total = inputs.reduce((acc, input) => acc + parseFloat(input.expense || 0), 0);
+    setTotalExpenses(total);
+  }, [inputs]);
+
   const formSubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
     if (user.uid) {
       inputs.map(async (input) => {
         try {
-          const expenseRef = ref(db, "expenseCollection");
+          const expenseRef = ref(getDatabase(), "expenseCollection");
           const newExpense = push(expenseRef);
           await set(newExpense, {
             category: input.category,
             expense: input.expense,
-            date: serverTimestamp(),
+            date: input.date,
+            employer: input.employer, // Save the selected employer with the expense
+            timestamp: serverTimestamp(),
             userID: user.uid,
           });
-          setInputs([{ category: "", expense: 0 }]);
+          setInputs([{ category: "", expense: 0, date: "", employer: "" }]); // Reset inputs after submission
         } catch (error) {
           console.log(error);
         }
@@ -75,11 +103,34 @@ const Expenses = () => {
               <label htmlFor="expense">Expense:</label>
               <input
                 type="number"
-                placeholder="Choose your expense"
+                placeholder="Enter expense"
                 value={input.expense}
                 name="expense"
                 onChange={(e) => handleChange(e, index)}
               />
+
+              <label htmlFor="date">Date:</label>
+              <input
+                type="date"
+                value={input.date}
+                name="date"
+                onChange={(e) => handleChange(e, index)}
+              />
+
+              {/* Employer Selection Dropdown */}
+              <label htmlFor="employer">Employer:</label>
+              <select
+                name="employer"
+                value={input.employer}
+                onChange={(e) => handleChange(e, index)}
+              >
+                <option value="">-- Select Employer --</option>
+                {employers.map((employer) => (
+                  <option key={employer.id} value={employer.id}>
+                    {employer.businessName}
+                  </option>
+                ))}
+              </select>
 
               {inputs.length > 1 && (
                 <button
@@ -99,6 +150,11 @@ const Expenses = () => {
             Submit
           </button>
         </form>
+
+        {/* Display total expenses on the side */}
+        <div className="total-expenses">
+          <h2>Total Expenses: ${totalExpenses.toFixed(2)}</h2>
+        </div>
       </div>
     </div>
   );

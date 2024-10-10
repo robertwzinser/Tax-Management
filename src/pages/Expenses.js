@@ -1,47 +1,38 @@
-import React, { useState, useEffect } from "react";
-import { ref, onValue } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../firebase";
+import { useState, useEffect } from "react";
+import { getDatabase, ref, push, set, serverTimestamp, onValue } from "firebase/database";
+import { auth } from "../firebase";
 import "./Expenses.css";
 
 const Expenses = () => {
-  const [inputs, setInputs] = useState([{ category: "", expense: "0" }]);
-  const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [inputs, setInputs] = useState([{ category: "", expense: 0, date: "", employer: "" }]);
+  const [totalExpenses, setTotalExpenses] = useState(0); // New state for tracking total expenses
+  const [employers, setEmployers] = useState([]); // New state to store the employers
+  const [selectedEmployer, setSelectedEmployer] = useState(""); // Store selected employer
 
+  // Fetch employers when the component mounts
   useEffect(() => {
-    const fetchUserRole = async (userId) => {
-      const userRef = ref(db, "users/" + userId);
-      onValue(userRef, (snapshot) => {
-        const userData = snapshot.val();
-        if (userData) {
-          setUserRole(userData.role);
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      const linkedEmployersRef = ref(getDatabase(), `users/${userId}/linkedEmployers`);
+      onValue(linkedEmployersRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const employersData = Object.entries(data).map(([id, employer]) => ({
+            id,
+            businessName: employer.name,
+          }));
+          setEmployers(employersData);
         }
-        setLoading(false);
       });
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userId = user.uid;
-        fetchUserRole(userId);
-      } else {
-        setUserRole("");
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
 
   const addInput = () => {
-    setInputs([...inputs, { category: "", expense: "0" }]);
+    setInputs([...inputs, { category: "", expense: 0, date: "", employer: "" }]);
   };
 
-  const removeInput = (currentIndex) => {
-    const filteredInputs = inputs.filter(
-      (input, index) => index !== currentIndex
-    );
+  const removeInputs = (currentIndex) => {
+    const filteredInputs = inputs.filter((input, index) => index !== currentIndex);
     setInputs(filteredInputs);
   };
 
@@ -51,15 +42,41 @@ const Expenses = () => {
     setInputs(inputData);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // Calculate total expenses whenever inputs change
+  useEffect(() => {
+    const total = inputs.reduce((acc, input) => acc + parseFloat(input.expense || 0), 0);
+    setTotalExpenses(total);
+  }, [inputs]);
+
+  const formSubmit = async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (user.uid) {
+      inputs.map(async (input) => {
+        try {
+          const expenseRef = ref(getDatabase(), "expenseCollection");
+          const newExpense = push(expenseRef);
+          await set(newExpense, {
+            category: input.category,
+            expense: input.expense,
+            date: input.date,
+            employer: input.employer, // Save the selected employer with the expense
+            timestamp: serverTimestamp(),
+            userID: user.uid,
+          });
+          setInputs([{ category: "", expense: 0, date: "", employer: "" }]); // Reset inputs after submission
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+  };
 
   return (
     <div className="expenses-container">
       <h1>Expenses</h1>
       <div className="expenses-content">
-        <form className="expense-form">
+        <form className="expense-form" onSubmit={(e) => formSubmit(e)}>
           {inputs.map((input, index) => (
             <div key={index} className="expense-item">
               <label htmlFor="category">Category:</label>
@@ -87,24 +104,57 @@ const Expenses = () => {
               <input
                 type="number"
                 placeholder="Enter expense"
-                name="expense"
                 value={input.expense}
+                name="expense"
                 onChange={(e) => handleChange(e, index)}
               />
 
+              <label htmlFor="date">Date:</label>
+              <input
+                type="date"
+                value={input.date}
+                name="date"
+                onChange={(e) => handleChange(e, index)}
+              />
+
+              {/* Employer Selection Dropdown */}
+              <label htmlFor="employer">Employer:</label>
+              <select
+                name="employer"
+                value={input.employer}
+                onChange={(e) => handleChange(e, index)}
+              >
+                <option value="">-- Select Employer --</option>
+                {employers.map((employer) => (
+                  <option key={employer.id} value={employer.id}>
+                    {employer.businessName}
+                  </option>
+                ))}
+              </select>
+
               {inputs.length > 1 && (
-                <button type="button" onClick={() => removeInput(index)}>
+                <button
+                  type="button"
+                  onClick={() => removeInputs(index)}
+                  className="remove-button"
+                >
                   Remove Expense
                 </button>
               )}
             </div>
           ))}
-
-          <button type="button" onClick={addInput}>
+          <button type="button" onClick={addInput} className="add-button">
             Add New Expense
           </button>
-          <button type="submit">Submit</button>
+          <button type="submit" className="submit-button">
+            Submit
+          </button>
         </form>
+
+        {/* Display total expenses on the side */}
+        <div className="total-expenses">
+          <h2>Total Expenses: ${totalExpenses.toFixed(2)}</h2>
+        </div>
       </div>
     </div>
   );

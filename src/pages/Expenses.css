@@ -5,6 +5,8 @@
   justify-content: flex-start;
   padding: 20px;
   margin-top: 20px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text color */
 }
 
 /* Expenses content styling */
@@ -34,6 +36,7 @@
 .expense-item label {
   margin-bottom: 5px;
   font-weight: bold;
+  color: #e0e0e0; /* Light label text */
 }
 
 .expense-item select,
@@ -43,35 +46,90 @@
   margin-bottom: 10px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid #555; /* Dark border for inputs */
+  background-color: #1e1e1e; /* Dark input background */
+  color: #e0e0e0; /* Light text in input */
 }
 
-/* Buttons Styling */
-button {
-  background-color: #4caf50;
-  color: white;
+.expense-item input[type="date"] {
+  background-color: #1e1e1e; /* Dark input background */
+  color: #e0e0e0; /* Light text for the date input */
+}
+
+/* Employer Select Styling */
+.expense-item select[name="employer"] {
+  background-color: #1e1e1e; /* Dark input background */
+  color: #e0e0e0; /* Light text in input */
+  border: 1px solid #555;
   padding: 10px;
+  margin-bottom: 10px;
   font-size: 16px;
-  border: none;
   border-radius: 4px;
-  cursor: pointer;
-  width: 100%;
-  max-width: 200px;
-  margin-top: 10px;
-}
-
-button:hover {
-  background-color: #45a049;
 }
 
 /* Add and Remove Buttons */
 .expense-item button {
   background-color: #f44336;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
   margin-top: 10px;
 }
 
 .expense-item button:hover {
   background-color: #e53935;
+}
+
+/* Submit Button */
+.submit-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 15px;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}
+
+/* Add New Expense Button */
+.add-button {
+  background-color: #1976d2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 15px;
+}
+
+.add-button:hover {
+  background-color: #1565c0;
+}
+
+/* Total Expenses Section */
+.total-expenses {
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.total-expenses h2 {
+  font-size: 1.8em;
+  margin: 0;
 }
 
 /* Responsive Design */
@@ -86,5 +144,10 @@ button:hover {
 
   .expense-form {
     width: 100%;
+  }
+
+  .total-expenses {
+    width: 100%;
+    max-width: 100%;
   }
 }

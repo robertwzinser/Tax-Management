@@ -1,41 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { ref, onValue } from "firebase/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState } from "react";
+import { getDatabase, ref, push, set, serverTimestamp } from "firebase/database";
 import { auth, db } from "../firebase";
-import "./Expenses.css";
+import "./Expenses.css"; // Import the same CSS file to maintain consistency
 
 const Expenses = () => {
-  const [inputs, setInputs] = useState([{ category: "", expense: "0" }]);
-  const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUserRole = async (userId) => {
-      const userRef = ref(db, "users/" + userId);
-      onValue(userRef, (snapshot) => {
-        const userData = snapshot.val();
-        if (userData) {
-          setUserRole(userData.role);
-        }
-        setLoading(false);
-      });
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userId = user.uid;
-        fetchUserRole(userId);
-      } else {
-        setUserRole("");
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const [category, setCategory] = useState("");
+  const [inputs, setInputs] = useState([{ category: "", expense: 0 }]);
 
   const addInput = () => {
-    setInputs([...inputs, { category: "", expense: "0" }]);
+    setInputs([...inputs, { category: "", expense: 0 }]);
   };
 
   const removeInput = (currentIndex) => {
@@ -51,9 +24,33 @@ const Expenses = () => {
     setInputs(inputData);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // Calculate total expenses whenever inputs change
+  useEffect(() => {
+    const total = inputs.reduce((acc, input) => acc + parseFloat(input.expense || 0), 0);
+    setTotalExpenses(total);
+  }, [inputs]);
+
+  const formSubmit = async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (user.uid) {
+      inputs.map(async (input) => {
+        try {
+          const expenseRef = ref(db, "expenseCollection");
+          const newExpense = push(expenseRef);
+          await set(newExpense, {
+            category: input.category,
+            expense: input.expense,
+            date: serverTimestamp(),
+            userID: user.uid,
+          });
+          setInputs([{ category: "", expense: 0 }]);
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+  };
 
   return (
     <div className="expenses-container">
@@ -86,11 +83,33 @@ const Expenses = () => {
               <label htmlFor="expense">Expense:</label>
               <input
                 type="number"
-                placeholder="Enter expense"
-                name="expense"
+                placeholder="Choose your expense"
                 value={input.expense}
                 onChange={(e) => handleChange(e, index)}
               />
+
+              <label htmlFor="date">Date:</label>
+              <input
+                type="date"
+                value={input.date}
+                name="date"
+                onChange={(e) => handleChange(e, index)}
+              />
+
+              {/* Employer Selection Dropdown */}
+              <label htmlFor="employer">Employer:</label>
+              <select
+                name="employer"
+                value={input.employer}
+                onChange={(e) => handleChange(e, index)}
+              >
+                <option value="">-- Select Employer --</option>
+                {employers.map((employer) => (
+                  <option key={employer.id} value={employer.id}>
+                    {employer.businessName}
+                  </option>
+                ))}
+              </select>
 
               {inputs.length > 1 && (
                 <button type="button" onClick={() => removeInput(index)}>
@@ -105,6 +124,11 @@ const Expenses = () => {
           </button>
           <button type="submit">Submit</button>
         </form>
+
+        {/* Display total expenses on the side */}
+        <div className="total-expenses">
+          <h2>Total Expenses: ${totalExpenses.toFixed(2)}</h2>
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import {
   EmailAuthProvider,
   onAuthStateChanged,
 } from "firebase/auth";
-import { ref, remove, onValue } from "firebase/database";
+import { ref, remove, onValue, equalTo, query, orderByChild, get } from "firebase/database";
 import "./Dashboard.css";
 // Import role-specific components
 import { EmployerWidgets } from "../components/RoleWidgets/EmployerWidgets";
@@ -18,10 +18,14 @@ const Dashboard = () => {
   const [firstname, setFirstname] = useState("User"); // Default to "User"
   const [taxData, setTaxData] = useState({});
   const [incomeData, setIncomeData] = useState([]);
+  const [expenseData, setExpenseData] = useState([]);
   const [userRole, setUserRole] = useState("");
+  const [loading, setLoading] = useState(true) 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setLoading (true)
+      console.log ("test")
       if (user) {
         const userId = user.uid;
 
@@ -43,14 +47,39 @@ const Dashboard = () => {
         onValue(incomeRef, (snapshot) => {
           setIncomeData(snapshot.val() || []);
         });
+        const fetchdata = async () => {
+        const fetchExpenses = async () => {
+          const expenseRef = ref(db, "expenseCollection")
+          const q = query(expenseRef, orderByChild ("employer"), equalTo(userId))
+          let data = {}
+          onValue(q, (snapshot) => {
+           data = snapshot.val()
+          });
+
+          const expenseArray = Object.entries (data).map (([key, value]) => ({
+            id: key, ...value
+          }))
+          return expenseArray
+        }
+       const data = await fetchExpenses ()
+
+       const filterData = data.filter((expense)=> expense.accepted === undefined )
+       setExpenseData(filterData)
+       console.log(data)
+      }
+      fetchdata()
+        setLoading (false)
       } else {
         // User is signed out
         setUserRole(""); // Reset role or handle as needed
         setTaxData({});
         setIncomeData([]);
+        setLoading(false);
       }
     });
-
+    
+   
+    
     return () => unsubscribe(); // Clean up the subscription
   }, []);
 
@@ -111,7 +140,10 @@ const Dashboard = () => {
       console.error("There was a problem signing out:", error.message);
     }
   };
-
+  console.log(expenseData)
+  if (loading){
+    return <h2> loading </h2>
+  }
   return (
     <div className="dashboard-container">
       <div>
@@ -123,7 +155,7 @@ const Dashboard = () => {
         {userRole === "Freelancer" ? (
           <FreelancerWidgets taxData={taxData} incomeData={incomeData} />
         ) : (
-          <EmployerWidgets />
+          <EmployerWidgets expenseData = {expenseData} />
         )}
       </div>
     </div>

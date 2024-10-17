@@ -16,6 +16,7 @@ import JobBoard from "./pages/JobBoard";
 import Generate1099 from "./pages/1099";
 import Expenses from "./pages/Expenses";
 import Layout from "./components/Navbar/Layout";
+import Deductions from './pages/Deductions';
 import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
 import { auth } from "./firebase"; // Import your Firebase config
 
@@ -89,6 +90,10 @@ const App = () => {
           <Route
             path="/generate-1099"
             element={isLoggedIn ? <Generate1099 /> : <Navigate to="/sign-in" />}
+          />
+          <Route 
+            path="/deductions" 
+            element={isLoggedIn ? <Deductions /> : <Navigate to="/sign-in" />} 
           />
         </Route>
       </Routes>

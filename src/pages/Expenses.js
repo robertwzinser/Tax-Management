@@ -1,70 +1,122 @@
 import { useState, useEffect } from "react";
-import { getDatabase, ref, push, set, serverTimestamp, onValue } from "firebase/database";
-import { auth } from "../firebase";
-import "./Expenses.css";
+import { getDatabase, ref as dbRef, push, set, serverTimestamp, query, orderByChild, equalTo, onValue, get } from "firebase/database";
+import { auth, db, storage } from "../firebase";
+import { uploadBytesResumable, getDownloadURL, ref as uploadRef} from "firebase/storage"
+import "./Expenses.css"; // Import the same CSS file to maintain consistency
+
 
 const Expenses = () => {
-  const [inputs, setInputs] = useState([{ category: "", expense: 0, date: "", employer: "" }]);
-  const [totalExpenses, setTotalExpenses] = useState(0); // New state for tracking total expenses
-  const [employers, setEmployers] = useState([]); // New state to store the employers
-  const [selectedEmployer, setSelectedEmployer] = useState(""); // Store selected employer
-
-  // Fetch employers when the component mounts
-  useEffect(() => {
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      const linkedEmployersRef = ref(getDatabase(), `users/${userId}/linkedEmployers`);
-      onValue(linkedEmployersRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const employersData = Object.entries(data).map(([id, employer]) => ({
-            id,
-            businessName: employer.name,
-          }));
-          setEmployers(employersData);
-        }
-      });
+  const [inputs, setInputs] = useState([{ category: "", expense: 0, employer: "", date: "", file: null}]);
+  const [employers, setEmployers ] = useState ([])
+  const [upload, setUpload] =useState (false)
+  const fetchEmployers = async () => {
+    const employerRef = dbRef(db,"users")
+    const employersquery = query (employerRef, orderByChild('role'), equalTo('Employer'))    
+    try{
+      const snapshot= await get(employerRef)
+      console.log (snapshot)
+      if (snapshot.exists()){
+        console.log(snapshot.val())
+        return snapshot.val()
+      }
     }
-  }, []);
-
+    catch(error){}
+  }
+  
   const addInput = () => {
-    setInputs([...inputs, { category: "", expense: 0, date: "", employer: "" }]);
+    setInputs([...inputs, { category: "", expense: 0, employer: "", date: "", file: null }]);
   };
 
-  const removeInputs = (currentIndex) => {
-    const filteredInputs = inputs.filter((input, index) => index !== currentIndex);
+  const removeInput = (currentIndex) => {
+    const filteredInputs = inputs.filter(
+      (input, index) => index !== currentIndex
+    );
     setInputs(filteredInputs);
   };
 
   const handleChange = (e, index) => {
     const inputData = [...inputs];
-    inputData[index][e.target.name] = e.target.value;
+    if (e.target.type === "file"){
+      inputData[index][e.target.name]= e.target.files[0]
+    } else{
+      inputData[index][e.target.name] = e.target.value;
+    }
+    
     setInputs(inputData);
   };
 
   // Calculate total expenses whenever inputs change
   useEffect(() => {
     const total = inputs.reduce((acc, input) => acc + parseFloat(input.expense || 0), 0);
-    setTotalExpenses(total);
+    //setTotalExpenses(total);
+    const fetchEmployerlist = async ()=>{
+      const users = await fetchEmployers ()
+      const usersArray = Object.entries (users).map(([key, value])=> ({
+        id: key, ...value
+      }))
+      const elist = usersArray.filter((user)=> user.role === "Employer")
+      setEmployers(elist)
+      console.log (elist)
+    }
+    fetchEmployerlist()
   }, [inputs]);
-
+  
   const formSubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
     if (user.uid) {
+      let fullname = ""
+      let email =""
+      let URL = ""
+      const userRef = dbRef(db, "users/" + user.uid);
+        onValue(userRef, (snapshot) => {
+          const userData = snapshot.val();
+          if (userData) {
+         fullname = userData.firstname + " "+ userData.lastname 
+         email = userData.email
+          }
+        });
+
+        
       inputs.map(async (input) => {
         try {
-          const expenseRef = ref(getDatabase(), "expenseCollection");
+        console.log (input.file)
+        const file= input.file
+        if (!file)
+          console.log("null file")
+        const storageRef = uploadRef(storage, `images/${file.name}`)
+        const uploadTask = uploadBytesResumable(storageRef, file)
+        console.log(input)
+        setUpload (true)
+        uploadTask.on(
+          "state_changed", 
+          (snapshot)=>{
+          console.log("uploading")
+          },
+          (error)=>{
+          console.log (error)
+          },
+          async()=> {
+            const downloadURL = await getDownloadURL (uploadTask.snapshot.ref)
+            
+        const expenseRef = dbRef(db, "expenseCollection");
           const newExpense = push(expenseRef);
           await set(newExpense, {
             category: input.category,
             expense: input.expense,
             date: input.date,
-            employer: input.employer, // Save the selected employer with the expense
-            timestamp: serverTimestamp(),
+            downloadURL,
             userID: user.uid,
+            fullname,
+            email,
+            employer: input.employer,
+            accepted: null
+
           });
-          setInputs([{ category: "", expense: 0, date: "", employer: "" }]); // Reset inputs after submission
+          setInputs([{ category: "", expense: 0, employer: "", date:"", file: null }]);
+        setUpload(false)
+        }) 
+          
         } catch (error) {
           console.log(error);
         }
@@ -76,7 +128,7 @@ const Expenses = () => {
     <div className="expenses-container">
       <h1>Expenses</h1>
       <div className="expenses-content">
-        <form className="expense-form" onSubmit={(e) => formSubmit(e)}>
+        <form className="expense-form" onSubmit ={(e) => formSubmit(e)}>
           {inputs.map((input, index) => (
             <div key={index} className="expense-item">
               <label htmlFor="category">Category:</label>
@@ -103,9 +155,9 @@ const Expenses = () => {
               <label htmlFor="expense">Expense:</label>
               <input
                 type="number"
-                placeholder="Enter expense"
+                name = "expense"
+                placeholder="Choose your expense"
                 value={input.expense}
-                name="expense"
                 onChange={(e) => handleChange(e, index)}
               />
 
@@ -131,29 +183,25 @@ const Expenses = () => {
                   </option>
                 ))}
               </select>
+              <input type= "file" name ="file" onChange={(e) => handleChange(e, index)}></input>
 
               {inputs.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeInputs(index)}
-                  className="remove-button"
-                >
+                <button type="button" onClick={() => removeInput(index)}>
                   Remove Expense
                 </button>
               )}
             </div>
           ))}
-          <button type="button" onClick={addInput} className="add-button">
+
+          <button type="button" onClick={addInput}>
             Add New Expense
           </button>
-          <button type="submit" className="submit-button">
-            Submit
-          </button>
+          <button type="submit" disabled= {upload}>Submit</button>
         </form>
 
         {/* Display total expenses on the side */}
         <div className="total-expenses">
-          <h2>Total Expenses: ${totalExpenses.toFixed(2)}</h2>
+          {/* <h2>Total Expenses: ${totalExpenses.toFixed(2)}</h2> */}
         </div>
       </div>
     </div>

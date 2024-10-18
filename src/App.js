@@ -16,6 +16,7 @@ import JobBoard from "./pages/JobBoard";
 import Generate1099 from "./pages/1099";
 import Expenses from "./pages/Expenses";
 import Layout from "./components/Navbar/Layout";
+import Messaging from "./components/Messaging";
 import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
 import { auth } from "./firebase"; // Import your Firebase config
 
@@ -65,6 +66,10 @@ const App = () => {
           <Route
             path="/dashboard"
             element={isLoggedIn ? <Dashboard /> : <Navigate to="/sign-in" />}
+          />
+          <Route
+            path="/inbox"
+            element={isLoggedIn ? <Messaging /> : <Navigate to="/inbox" />}
           />
           <Route
             path="/profile"

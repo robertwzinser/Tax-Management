@@ -13,6 +13,9 @@ const Navbar = () => {
         <Link to="/job-board" className="nav-item left">
           Job Board
         </Link>
+        <Link to="/inbox" className="nav-item left">
+          Inbox
+        </Link>
       </div>
 
       {/* Right-side buttons */}

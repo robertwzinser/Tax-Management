@@ -5,8 +5,10 @@ import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
 
 const DailyIncome = () => {
-  const [employers, setEmployers] = useState([]); // Stores linked employers
+  const [employers, setEmployers] = useState([]);
   const [selectedClient, setSelectedClient] = useState(""); // Selected employer
+  const [jobs, setJobs] = useState([]); // Jobs linked to the selected employer
+  const [selectedJob, setSelectedJob] = useState(null); // Selected job
   const [service, setService] = useState(""); // Service description
   const [amount, setAmount] = useState(0); // Amount earned
   const [date, setDate] = useState(""); // Date of service
@@ -21,16 +23,31 @@ const DailyIncome = () => {
       onValue(linkedEmployersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          // Set employer business names from linkedEmployers data
           const employersData = Object.entries(data).map(([id, employer]) => ({
             id,
-            businessName: employer.name, // Use business name instead of personal name
+            businessName: employer.name,
           }));
-          setEmployers(employersData); // Set employers with business names
+          setEmployers(employersData);
         }
       });
     }
   }, []);
+
+  // Fetch jobs based on the selected employer
+  useEffect(() => {
+    if (selectedClient) {
+      const jobsRef = ref(db, `jobs/`);
+      onValue(jobsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const filteredJobs = Object.entries(data).filter(
+            ([, job]) => job.employerId === selectedClient
+          );
+          setJobs(filteredJobs);
+        }
+      });
+    }
+  }, [selectedClient]);
 
   // Handle real-time tax calculation (e.g., 20% estimate)
   useEffect(() => {
@@ -48,20 +65,21 @@ const DailyIncome = () => {
     }
 
     // Validate inputs
-    if (!selectedClient || !service || !amount || !date) {
+    if (!selectedClient || !selectedJob || !service || !amount || !date) {
       alert("Please fill in all fields.");
       return;
     }
 
     // Prepare the income entry
     const incomeEntry = {
+      jobId: selectedJob.jobId, // Update to include jobId
       service,
       amount: parseFloat(amount),
       date,
       estimatedTax,
     };
 
-    // Store the income entry under the selected employer within linkedEmployers
+    // Store the income entry under the selected employer and job
     const incomeRef = ref(
       db,
       `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`
@@ -91,10 +109,32 @@ const DailyIncome = () => {
           <option value="">-- Select an Employer --</option>
           {employers.map((employer) => (
             <option key={employer.id} value={employer.id}>
-              {employer.businessName} {/* Display business name */}
+              {employer.businessName}
             </option>
           ))}
         </select>
+
+        {jobs.length > 0 && (
+          <>
+            <label htmlFor="job">Select Job:</label>
+            <select
+              id="job"
+              value={selectedJob ? JSON.stringify(selectedJob) : ""}
+              onChange={(e) => setSelectedJob(JSON.parse(e.target.value))}
+              required
+            >
+              <option value="">-- Select a Job --</option>
+              {jobs.map(([id, job]) => (
+                <option
+                  key={id}
+                  value={JSON.stringify({ jobId: id, employerId: job.employerId, freelancerId: job.freelancerId })}
+                >
+                  {job.title}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
 
         <label htmlFor="service">Service Rendered:</label>
         <input

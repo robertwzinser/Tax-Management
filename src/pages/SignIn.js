@@ -31,36 +31,35 @@ const SignIn = () => {
     e.preventDefault();
     try {
       // Authenticate user with email and password
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Get first name from Realtime Database
+  
+      // Get user data from Realtime Database
       const userRef = ref(db, "users/" + user.uid);
       const snapshot = await get(userRef);
+      
       if (snapshot.exists()) {
         const userData = snapshot.val();
         const firstname = userData.firstname;
-
-        if (role === "employer") {
-          console.log("EmployerRoute");
+        const role = userData.role; // Get the role from the database
+  
+        // Check role and navigate accordingly
+        if (role === "Employer") {
+          navigate("/dashboard", { state: { firstname } });
+        } else if (role === "Freelancer") {
           navigate("/dashboard", { state: { firstname } });
         } else {
-          console.log("FreelancerRoute");
-          navigate("/dashboard", { state: { firstname } });
+          setErrorMessage("Unauthorized role.");
         }
       } else {
-        console.error("User is non-existent in Realtime Database");
+        setErrorMessage("User does not exist in the database.");
       }
     } catch (error) {
       setErrorMessage(`Error: ${error.message}`);
       console.error("There was a problem signing you in:", error.message);
     }
   };
+  
 
   return (
     <section className="sign-in-container">

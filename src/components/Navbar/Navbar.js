@@ -32,6 +32,9 @@ const Navbar = () => {
         <Link to="/generate-1099" className="nav-item settings-btn">
           Generate 1099
         </Link>
+        <Link to="/deductions" className="nav-item settings-btn">
+            Deductions
+        </Link>
       </div>
     </nav>
   );

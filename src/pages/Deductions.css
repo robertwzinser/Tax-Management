@@ -1,118 +1,95 @@
 .deductions-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 20px;
-    margin-top: 20px;
-    background-color: #121212; /* Dark background */
-    color: #e0e0e0; /* Light text color */
-  }
-  
-  /* Deductions content styling */
-  .deductions-content {
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  /* Deduction Form Styling */
-  .deduction-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .deduction-item {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-bottom: 15px;
-  }
-  
-  .deduction-item label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #e0e0e0; /* Light label text */
-  }
-  
-  .deduction-item select,
-  .deduction-item input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    border-radius: 4px;
-    border: 1px solid #555; /* Dark border for inputs */
-    background-color: #1e1e1e; /* Dark input background */
-    color: #e0e0e0; /* Light text in input */
-  }
-  
-  /* Add and Remove Buttons */
-  .deduction-item button {
-    background-color: #f44336;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-  }
-  
-  .deduction-item button:hover {
-    background-color: #e53935;
-  }
-  
-  /* Submit Button */
-  .submit-button {
-    background-color: #4caf50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 18px;
-    margin-top: 15px;
-  }
-  
-  .submit-button:hover {
-    background-color: #45a049;
-  }
-  
-  /* Add New Deduction Button */
-  .add-button {
-    background-color: #1976d2;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 18px;
-    margin-top: 15px;
-  }
-  
-  .add-button:hover {
-    background-color: #1565c0;
-  }
-  
-  /* Deduction Summary Section */
-  .deduction-summary {
-    width: 100%;
-    max-width: 600px;
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    border-radius: 8px;
-    text-align: center;
-  }
-  
-  .deduction-summary h2 {
-    font-size: 1.8em;
-    margin: 0;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px;
+  margin-top: 20px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text color */
+}
+
+/* Deductions content styling */
+.deductions-content {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Deduction Form Styling */
+.deduction-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Button Group for Business Use */
+.button-group {
+  width: 100%;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.select-button {
+  background-color: #1976d2;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 48%; /* Space out buttons evenly */
+}
+
+.select-button.active {
+  background-color: #4caf50;
+}
+
+.select-button:hover {
+  background-color: #1565c0;
+}
+
+.ira-input,
+.deduction-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.ira-input label,
+.deduction-input label {
+  font-weight: bold;
+  color: #e0e0e0;
+  margin-bottom: 5px;
+}
+
+.ira-input input,
+.deduction-input input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+/* Submit Button */
+.submit-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 15px;
+}
+
+.submit-button:hover {
+  background-color: #45a
+}

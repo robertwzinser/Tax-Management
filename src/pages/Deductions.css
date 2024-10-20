@@ -1,95 +1,157 @@
+/* Container */
 .deductions-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 20px;
-  margin-top: 20px;
-  background-color: #121212; /* Dark background */
-  color: #e0e0e0; /* Light text color */
+  padding: 30px;
+  background-color: #1c1c1c; /* Dark background */
+  color: #ffffff; /* White text color */
+  min-height: 100vh;
 }
 
-/* Deductions content styling */
-.deductions-content {
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Deduction Form Styling */
+/* Form Content */
 .deduction-form {
   width: 100%;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  background-color: #2b2b2b; /* Darker background for form */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid #333;
 }
 
-/* Button Group for Business Use */
-.button-group {
+/* Headline */
+h1 {
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff; /* White headline */
+  font-size: 36px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Input Fields Styling */
+.deduction-input {
   width: 100%;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 25px;
+  position: relative;
 }
 
-.select-button {
+.deduction-input label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  color: #ffffff; /* White label text */
+  margin-bottom: 5px;
+  display: block;
+}
+
+.deduction-input input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #3a3a3a; /* Dark background for input */
+  color: #ffffff; /* White input text */
+  transition: all 0.3s ease;
+}
+
+.deduction-input input::placeholder {
+  color: #bdbdbd; /* Light grey for placeholder */
+}
+
+.deduction-input input:focus {
+  border-color: #1976d2;
+  outline: none;
+  background-color: #2b2b2b;
+}
+
+/* Add Deduction Button */
+.add-button {
   background-color: #1976d2;
   color: white;
   padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
-  width: 48%; /* Space out buttons evenly */
+  margin-bottom: 25px;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease;
 }
 
-.select-button.active {
-  background-color: #4caf50;
-}
-
-.select-button:hover {
-  background-color: #1565c0;
-}
-
-.ira-input,
-.deduction-input {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-.ira-input label,
-.deduction-input label {
-  font-weight: bold;
-  color: #e0e0e0;
-  margin-bottom: 5px;
-}
-
-.ira-input input,
-.deduction-input input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+.add-button:hover {
+  background-color: #145a9d;
 }
 
 /* Submit Button */
 .submit-button {
   background-color: #4caf50;
   color: white;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 18px;
-  margin-top: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease;
 }
 
 .submit-button:hover {
-  background-color: #45a
+  background-color: #388e3c;
+}
+
+/* Remove Button */
+.deduction-input button {
+  background-color: #f44336;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.deduction-input button:hover {
+  background-color: #d32f2f;
+}
+
+/* Deduction Summary */
+.deduction-summary {
+  margin-top: 30px;
+  text-align: center;
+  padding: 20px;
+  background-color: #2b2b2b; /* Darker background for summary */
+  border-radius: 8px;
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid #333;
+}
+
+.deduction-summary h2 {
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff; /* White summary text */
+  font-size: 24px;
+  margin: 10px 0;
+}
+
+/* Form Layout Improvements */
+@media only screen and (max-width: 768px) {
+  .deduction-form {
+    padding: 20px;
+  }
+
+  .add-button, .submit-button {
+    font-size: 16px;
+  }
+
+  .deduction-summary h2 {
+    font-size: 20px;
+  }
 }

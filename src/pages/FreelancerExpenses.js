@@ -62,7 +62,7 @@ const FreelancerExpenses =()=>{
     console.log(expenseData)
   return(
     <div>
-    <h1> Expenses </h1>
+    <h1> Reimbursments </h1>
     <h2>Total Accepted Cost: ${total}</h2>
       {expenseData.length !== 0 ? expenseData.map((expense)=>(
         <div className = "expenselist">    
@@ -79,7 +79,7 @@ const FreelancerExpenses =()=>{
           
            </div>
       )):
-      <h3>No Current Expenses.</h3>
+      <h3>No Current Expenses Submitted By A Freelancer.</h3>
       }
       </div>
   )

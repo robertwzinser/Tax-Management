@@ -60,7 +60,7 @@ const Navbar = () => {
       <div className="right-buttons">
         {userRole === "Employer"? 
        <Link to="/freelancerexpenses" className="nav-item profile-btn">
-       FreelancerExpenses
+       Reimbursments
      </Link>:
      <Link to="/expenses" className="nav-item profile-btn">
      Expenses

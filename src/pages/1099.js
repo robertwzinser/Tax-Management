@@ -187,7 +187,7 @@ const Generate1099 = () => {
         </>
       )}
 
-      <button onClick={handleGenerate} className="button">
+      <button onClick={handleGenerate} className="generate-button">
         Generate 1099
       </button>
     </div>

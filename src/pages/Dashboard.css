@@ -58,3 +58,6 @@ canvas {
   }
 }
 
+p {
+  text-align: center; /* Centered paragraph text */
+}

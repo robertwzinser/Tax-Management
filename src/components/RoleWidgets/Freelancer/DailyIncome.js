@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ref, onValue, push } from "firebase/database";
-import { auth, db } from "../firebase";
+import { auth, db } from "../../../firebase";
 import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
 
@@ -33,19 +33,24 @@ const DailyIncome = () => {
     }
   }, []);
 
-  // Fetch jobs based on the selected employer
+  // Fetch jobs based on the selected employer, filtering by the freelancerId
   useEffect(() => {
-    if (selectedClient) {
+    const userId = auth.currentUser?.uid;
+    if (selectedClient && userId) {
       const jobsRef = ref(db, `jobs/`);
       onValue(jobsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
+          // Filter jobs by employerId and freelancerId (only show jobs for the logged-in freelancer)
           const filteredJobs = Object.entries(data).filter(
-            ([, job]) => job.employerId === selectedClient
+            ([, job]) =>
+              job.employerId === selectedClient && job.freelancerId === userId
           );
           setJobs(filteredJobs);
         }
       });
+    } else {
+      setJobs([]); // Reset jobs if no employer is selected
     }
   }, [selectedClient]);
 
@@ -127,7 +132,11 @@ const DailyIncome = () => {
               {jobs.map(([id, job]) => (
                 <option
                   key={id}
-                  value={JSON.stringify({ jobId: id, employerId: job.employerId, freelancerId: job.freelancerId })}
+                  value={JSON.stringify({
+                    jobId: id,
+                    employerId: job.employerId,
+                    freelancerId: job.freelancerId,
+                  })}
                 >
                   {job.title}
                 </option>

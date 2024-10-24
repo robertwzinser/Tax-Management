@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { ref, onValue, push, update } from "firebase/database"; // Firebase DB functions
+import React, { useState } from "react";
+import { ref, push, update } from "firebase/database"; // Firebase DB functions
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 
@@ -96,7 +96,9 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
               <p>{job.description}</p>
               <p>Hourly Rate: ${job.payment}</p>
               <p>Deadline: {job.deadline}</p>
-              <p>Status: {job.status}</p>
+              <p className={`job-status ${job.status}`}>
+                {job.status === "open" ? "Open" : "Accepted"}
+              </p>
               {job.employerId === auth.currentUser?.uid && (
                 <>
                   <button onClick={() => setCurrentJobId(id)}>Edit Job</button>

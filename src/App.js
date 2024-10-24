@@ -11,14 +11,20 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import UserSettings from "./pages/UserSettings";
-import DailyIncome from "./pages/DailyIncome";
+import DailyIncome from "./components/RoleWidgets/Freelancer/DailyIncome";
 import JobBoard from "./pages/JobBoard";
 import Generate1099 from "./pages/1099";
-import Expenses from "./pages/Expenses";
+import Reimbursements from "./pages/Reimbursements";
 import Layout from "./components/Navbar/Layout";
+import AboutPage from "./pages/About";
 import Messaging from "./components/Messaging";
+import Deductions from "./pages/Deductions";
 import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
 import { auth } from "./firebase"; // Import your Firebase config
+
+// Import missing components here
+import FreelancerDetail from "./components/RoleWidgets/Employer/FreelancerDetail"; // Ensure the correct path
+import AddIncomeForm from "./components/RoleWidgets/Employer/AddIncomeForm"; // Ensure the correct path
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,7 +45,7 @@ const App = () => {
   }, []);
 
   if (loading) {
-    return <div></div>;
+    return <div></div>; // Display a loading state
   }
 
   return (
@@ -69,7 +75,7 @@ const App = () => {
           />
           <Route
             path="/inbox"
-            element={isLoggedIn ? <Messaging /> : <Navigate to="/inbox" />}
+            element={isLoggedIn ? <Messaging /> : <Navigate to="/sign-in" />}
           />
           <Route
             path="/profile"
@@ -84,10 +90,6 @@ const App = () => {
             element={isLoggedIn ? <DailyIncome /> : <Navigate to="/sign-in" />}
           />
           <Route
-            path="/expenses"
-            element={isLoggedIn ? <Expenses /> : <Navigate to="/sign-in" />}
-          />
-          <Route
             path="/job-board"
             element={isLoggedIn ? <JobBoard /> : <Navigate to="/sign-in" />}
           />
@@ -95,6 +97,32 @@ const App = () => {
             path="/generate-1099"
             element={isLoggedIn ? <Generate1099 /> : <Navigate to="/sign-in" />}
           />
+
+          <Route
+            path="/deductions"
+            element={isLoggedIn ? <Deductions /> : <Navigate to="/sign-in" />}
+          />
+          <Route
+            path="/reimbursements"
+            element={
+              isLoggedIn ? <Reimbursements /> : <Navigate to="/sign-in" />
+            }
+          />
+          {/* Freelancer Detail and Add Income routes */}
+          <Route
+            path="/freelancer/:freelancerId"
+            element={
+              isLoggedIn ? <FreelancerDetail /> : <Navigate to="/sign-in" />
+            }
+          />
+          <Route
+            path="/add-income/:freelancerId"
+            element={
+              isLoggedIn ? <AddIncomeForm /> : <Navigate to="/sign-in" />
+            }
+          />
+
+          <Route path="/about" element={<AboutPage />} />
         </Route>
       </Routes>
     </Router>

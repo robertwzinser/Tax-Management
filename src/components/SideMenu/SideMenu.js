@@ -94,9 +94,9 @@ export default function SideMenu() {
         sx={{
           display: { xs: "none", md: "block" },
           [`& .${drawerClasses.paper}`]: {
-            backgroundColor: "#1e1e1e", // Dark background for the drawer
-            color: "#e0e0e0", // Light text color
-            overflowX: "hidden", // Prevent horizontal scrolling within the drawer
+            backgroundColor: "#1e1e1e", 
+            color: "#e0e0e0", 
+            overflowX: "hidden", 
           },
         }}
         open={open}
@@ -110,13 +110,24 @@ export default function SideMenu() {
             borderBottom: "1px solid #333",
           }}
         >
-          <IconButton onClick={toggleDrawer} sx={{ color: "#e0e0e0" }}>
-            {open ? (
-              <ChevronLeftIcon sx={{ marginRight: "25px" }} />
-            ) : (
-              <MenuIcon />
-            )}
-          </IconButton>
+        <IconButton
+          onClick={toggleDrawer}
+          sx={{
+            color: "#e0e0e0",
+            "&:hover": {
+              backgroundColor: "transparent", 
+            },
+          }}
+          disableRipple
+          disableFocusRipple
+        >
+          {open ? (
+            <ChevronLeftIcon sx={{ marginRight: "25px" }} />
+          ) : (
+            <MenuIcon />
+          )}
+        </IconButton>
+
         </Box>
         <Box
           sx={{

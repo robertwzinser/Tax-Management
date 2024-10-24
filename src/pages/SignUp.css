@@ -78,9 +78,9 @@ p a:hover {
   background-color: #295442; /* Green button for sign-up */
   color: white;
   transition: background-color 0.3s ease;
-  max-width: 100%;
+  width: 100%;
 }
 
 .custom-btn:hover {
-  background-color: #2e7d32; /* Darker green on hover */
+  background-color: #1f4032; /* Darker green on hover */
 }

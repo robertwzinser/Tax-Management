@@ -1,22 +1,18 @@
-import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
-  deleteUser,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  onAuthStateChanged,
+  onAuthStateChanged
 } from "firebase/auth";
-import { ref, remove, onValue, equalTo, query, orderByChild, get } from "firebase/database";
+import { ref, onValue, equalTo, query, orderByChild } from "firebase/database";
 import "./Dashboard.css";
 // Import role-specific components
-import { EmployerWidgets } from "../components/RoleWidgets/EmployerWidgets";
-import { FreelancerWidgets } from "../components/RoleWidgets/FreelancerWidgets";
+import { EmployerWidgets } from '../components/RoleWidgets/Employer/EmployerWidgets';
+import { FreelancerWidgets } from "../components/RoleWidgets/Freelancer/FreelancerWidgets";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [firstname, setFirstname] = useState("User"); // Default to "User"
   const [taxData, setTaxData] = useState({});
+  const [businessName, setBusinessName] = useState(""); // New state for business name
   const [incomeData, setIncomeData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
   const [userRole, setUserRole] = useState("");
@@ -35,6 +31,9 @@ const Dashboard = () => {
           if (userData) {
             setUserRole(userData.role || "No role assigned");
             setFirstname(userData.firstname || "User"); // Fetch firstname from Firebase
+            if (userData.role === "Employer") {
+              setBusinessName(userData.businessName || "Business Name Not Available"); // Fetch business name
+            }
           }
         });
 
@@ -48,19 +47,28 @@ const Dashboard = () => {
           setIncomeData(snapshot.val() || []);
         });
         const fetchdata = async () => {
-        const fetchExpenses = async () => {
-          const expenseRef = ref(db, "expenseCollection")
-          const q = query(expenseRef, orderByChild ("employer"), equalTo(userId))
-          let data = {}
-          onValue(q, (snapshot) => {
-           data = snapshot.val()
-          });
-
-          const expenseArray = Object.entries (data).map (([key, value]) => ({
-            id: key, ...value
-          }))
-          return expenseArray
-        }
+          const fetchExpenses = async () => {
+            const expenseRef = ref(db, "expenseCollection");
+            const q = query(expenseRef, orderByChild("employer"), equalTo(userId));
+            let data = {};
+            
+            onValue(q, (snapshot) => {
+              data = snapshot.val();
+            });
+          
+            // Check if data exists before calling Object.entries
+            if (!data) {
+              return []; // Return an empty array if there's no data
+            }
+          
+            const expenseArray = Object.entries(data).map(([key, value]) => ({
+              id: key,
+              ...value,
+            }));
+          
+            return expenseArray;
+          };
+          
        const data = await fetchExpenses ()
 
        const filterData = data.filter((expense)=> expense.accepted === undefined )
@@ -83,63 +91,6 @@ const Dashboard = () => {
     return () => unsubscribe(); // Clean up the subscription
   }, []);
 
-  const reauthenticate = async () => {
-    const user = auth.currentUser;
-    if (!user) return false;
-
-    const email = user.email;
-    const password = prompt(
-      "Please confirm your password to delete your account:"
-    );
-    const credential = EmailAuthProvider.credential(email, password);
-
-    try {
-      await reauthenticateWithCredential(user, credential);
-      return true;
-    } catch (error) {
-      console.error("Re-authentication failed:", error.message);
-      alert("Re-authentication failed. Please try again.");
-      return false;
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    const confirmation = window.confirm(
-      "Are you sure you want to delete your account?"
-    );
-    if (confirmation) {
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const userId = user.uid;
-
-          const reauthenticated = await reauthenticate();
-          if (!reauthenticated) return;
-
-          await remove(ref(db, "users/" + userId));
-          await deleteUser(user);
-
-          alert("Account successfully deleted.");
-          navigate("/sign-in");
-        }
-      } catch (error) {
-        console.error(
-          "There was a problem deleting your account:",
-          error.message
-        );
-        alert("There was a problem deleting your account. Please try again.");
-      }
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      navigate("/sign-in");
-    } catch (error) {
-      console.error("There was a problem signing out:", error.message);
-    }
-  };
   console.log(expenseData)
   if (loading){
     return <h2> loading </h2>
@@ -149,6 +100,8 @@ const Dashboard = () => {
       <div>
         <h1>Welcome, {firstname}!</h1>
         <p>Your role: {userRole}</p> {/* Display the user's role here */}
+        {userRole === "Employer" && <p>Your Business: {businessName}</p>}
+
       </div>
 
       <div className="dashboard-widgets">

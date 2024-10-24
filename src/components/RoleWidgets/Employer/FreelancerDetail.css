@@ -1,0 +1,139 @@
+/* Main container for the freelancer details page */
+.freelancer-detail {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Income chart container */
+canvas {
+  max-width: 100%;
+  height: 400px;
+  margin-top: 20px;
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .freelancer-detail {
+    padding: 15px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .job-item {
+    padding: 10px;
+  }
+
+  .card h2 {
+    font-size: 1.3em;
+  }
+
+  .card p,
+  .job-item p {
+    font-size: 0.9em;
+  }
+}
+
+/* Expense Status Styling */
+.expense-status {
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 20px auto; /* Ensure the button is centered */
+}
+
+.expense-status.open {
+  background-color: #007bff;
+  color: white;
+}
+
+.expense-status.accepted {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Button styling for Accept/Reject */
+.expense-actions {
+  display: flex;
+  justify-content: center; /* Center the buttons horizontally */
+  gap: 10px; /* Add some space between the buttons */
+}
+
+.expense-actions button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.expense-actions button:hover {
+  background-color: #2980b9;
+}
+
+.expense-actions button.reject {
+  background-color: #e74c3c; /* Red color for the reject button */
+}
+
+.expense-actions button.reject:hover {
+  background-color: #c0392b; /* Darker red on hover */
+}
+
+/* Centering Buttons */
+.freelancer-button-accept {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background-color: #296187;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.freelancer-button-reject {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background-color: #872929;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.add-income-button {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background-color: #296187;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  width: 200px;
+  text-decoration: none;  
+  transition: background-color 0.3s ease;
+}
+.add-income-button:hover {
+  background-color: #2980b9;
+}
+
+.receipt-gap {
+  margin-top: 10px;
+}

@@ -85,3 +85,19 @@
 .nav-item.settings-btn:hover {
   background-color: #ba3d30; /* Red for settings buttons */
 }
+
+.nav-item.reimbursement-btn {
+  background-color: #3e66a3; /* Red for settings buttons */
+}
+
+.nav-item.reimbursement-btn:hover {
+  background-color: #304b74; /* Red for settings buttons */
+}
+
+.nav-item.deductions-btn {
+  background-color: #3e66a3; /* Red for settings buttons */
+}
+
+.nav-item.deductions-btn:hover {
+  background-color: #304b74; /* Red for settings buttons */
+}

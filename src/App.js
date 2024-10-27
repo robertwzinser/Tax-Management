@@ -19,6 +19,7 @@ import Layout from "./components/Navbar/Layout";
 import AboutPage from "./pages/About";
 import Messaging from "./components/Messaging";
 import Deductions from "./pages/Deductions";
+import ReceiptUploader from "./pages/ReceiptUploader";
 import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
 import { auth } from "./firebase"; // Import your Firebase config
 
@@ -101,6 +102,10 @@ const App = () => {
           <Route
             path="/deductions"
             element={isLoggedIn ? <Deductions /> : <Navigate to="/sign-in" />}
+          />
+          <Route
+            path="/uploader"
+            element={isLoggedIn ? <ReceiptUploader /> : <Navigate to="/uploader" />}
           />
           <Route
             path="/reimbursements"

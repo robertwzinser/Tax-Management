@@ -79,6 +79,11 @@ const Navbar = () => {
             Reimbursements
           </Link>
         )}
+        {userRole === "Freelancer" && (
+          <Link to="/uploader" className="nav-item uploader-btn">
+            Tax Uploads
+          </Link>
+        )}
       </div>
     </nav>
   );

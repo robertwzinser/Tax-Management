@@ -137,6 +137,9 @@ const Messaging = () => {
           messages.map((msg, idx) => (
             <div key={idx} className={`message-item ${msg.senderId === userId ? "sent" : "received"}`}>
               <p>{msg.text}</p>
+              <span className="timestamp" style={{ fontSize: "10px" }}>
+                {new Date(msg.timestamp).toLocaleString()}
+              </span>
             </div>
           ))
         ) : (

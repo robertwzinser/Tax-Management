@@ -20,8 +20,9 @@ import AboutPage from "./pages/About";
 import Messaging from "./components/Messaging/Messaging";
 import Deductions from "./pages/Deductions";
 import GlobalNotification from "./components/Notifications/GlobalNotification";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
+import ReceiptUploader from "./pages/ReceiptUploader";
+import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
+import { auth } from "./firebase"; // Import your Firebase config
 
 import FreelancerDetail from "./components/RoleWidgets/Employer/FreelancerDetail";
 import AddIncomeForm from "./components/RoleWidgets/Employer/AddIncomeForm";
@@ -101,6 +102,10 @@ const App = () => {
           <Route
             path="/deductions"
             element={isLoggedIn ? <Deductions /> : <Navigate to="/sign-in" />}
+          />
+          <Route
+            path="/uploader"
+            element={isLoggedIn ? <ReceiptUploader /> : <Navigate to="/uploader" />}
           />
           <Route
             path="/reimbursements"

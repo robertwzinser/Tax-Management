@@ -1,0 +1,126 @@
+/* Main container */
+.receipt-uploader {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  background-color: #2a2a3b; /* Dark background */
+  color: #f0f0f0; /* Light text color */
+  font-family: Arial, sans-serif;
+}
+
+/* Header styling */
+.receipt-uploader h2 {
+  text-align: center;
+  color: #e6e6e6;
+  margin-bottom: 15px;
+}
+
+/* Form sections */
+.form-section {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  font-weight: bold;
+  color: #bbbbbb;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* Input and select fields */
+input[type="file"], input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: #1e1e2f; /* Dark input background */
+  color: #f0f0f0;
+}
+
+/* Preview image styling */
+.preview-image {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+/* Status messages */
+.upload-status {
+  text-align: center;
+  color: #bbbbbb;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Buttons */
+.upload-button, .document-list button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.upload-button:hover, .document-list button:hover {
+  background-color: #45a049;
+}
+
+/* Document list styling */
+.document-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.document-list li {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #333444; /* Slightly lighter background for document items */
+}
+
+.document-list a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.document-list a:hover {
+  text-decoration: underline;
+}
+
+.document-list p {
+  margin: 5px 0;
+  color: #ddd;
+}
+
+/* Edit and Delete buttons */
+.document-list button {
+  width: 48%;
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #666;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+
+.document-list button:nth-child(2) {
+  margin-left: 4%;
+  background-color: #e74c3c; /* Red for delete button */
+}
+
+.document-list button:hover {
+  opacity: 0.85;
+}

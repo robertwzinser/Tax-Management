@@ -199,8 +199,8 @@ const Messaging = () => {
               }`}
             >
               <p>{msg.text}</p>
-              <span className="timestamp">
-                {formatTimestamp(msg.timestamp)}
+              <span className="timestamp" style={{ fontSize: "10px" }}>
+                {new Date(msg.timestamp).toLocaleString()}
               </span>
             </div>
           ))

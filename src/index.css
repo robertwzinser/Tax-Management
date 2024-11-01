@@ -1,42 +1,42 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #121212; /* Dark mode background */
-  color: #e0e0e0; /* Light text for dark mode */
+  background-color: #121212; 
+  color: #e0e0e0; 
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
-  color: #e0e0e0; /* Light text for code blocks in dark mode */
+  color: #e0e0e0; 
 }
 
 /* Styling scrollbars for Chrome, Edge, and Safari */
 ::-webkit-scrollbar {
-  width: 8px; 
+  width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #2e2e2e; /* Dark background for scroll track */
+  background: #2e2e2e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #555; /* Slightly lighter scrollbar thumb */
-  border-radius: 10px; 
-  border: 2px solid transparent; 
+  background-color: #555; 
+  border-radius: 10px;
+  border: 2px solid transparent;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #888; /* Lighten on hover for better visibility */
+  background: #888; 
 }
 
 /* Styling scrollbars for Firefox */
 * {
-  scrollbar-width: thin; /* "auto" or "thin" */
-  scrollbar-color: #555 #2e2e2e; /* Dark thumb and dark track for consistency */
+  scrollbar-width: thin; 
+  scrollbar-color: #555 #2e2e2e; 
 }

@@ -1,50 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { getDatabase, ref, child, get } from "firebase/database"; // Firebase imports for Realtime Database
+import GlobalNotification from "../../components/Notifications/GlobalNotification";
+import { getDatabase, ref, remove } from "firebase/database";
+import { getAuth } from "firebase/auth";
 import "./Navbar.css";
-import { getAuth, onAuthStateChanged } from "firebase/auth"; // Firebase Auth import
+import "../Notifications/Notifications.css";
 
 const Navbar = () => {
-  const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true); // To handle loading state
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  useEffect(() => {
-    // Initialize Firebase Auth and fetch current user
-    const auth = getAuth();
-    const dbRef = ref(getDatabase());
+  const auth = getAuth();
+  const db = getDatabase();
 
-    const fetchUserRole = async (userId) => {
-      try {
-        const snapshot = await get(child(dbRef, `users/${userId}`)); // Fetching user role from DB
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          setUserRole(data.role); // Assign role from DB to state
-        } else {
-          console.log("No user data available");
-        }
-      } catch (error) {
-        console.error("Error fetching user role: ", error);
-      } finally {
-        setLoading(false); // Stop loading
-      }
-    };
+  // Update notifications state when GlobalNotification fetches new data
+  const handleNotificationsUpdate = (newNotifications) => {
+    setNotifications(newNotifications);
+  };
 
-    // Auth state listener
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchUserRole(user.uid); // Fetch role using the user's UID
-      } else {
-        setUserRole(""); // No user logged in
-        setLoading(false); // Stop loading
-      }
-    });
-  }, []);
+  // Dismiss a notification
+  const dismissNotification = (notificationId) => {
+    const notificationRef = ref(
+      db,
+      `notifications/${auth.currentUser?.uid}/${notificationId}`
+    );
+    remove(notificationRef)
+      .then(() => {
+        setNotifications((prev) =>
+          prev.filter((notif) => notif.id !== notificationId)
+        );
+      })
+      .catch((error) => console.error("Error deleting notification:", error));
+  };
 
-  if (loading) return <div></div>; // Optionally handle loading state
+  // Format timestamp
+  const formatTimestamp = (timestamp) => new Date(timestamp).toLocaleString();
 
   return (
     <nav className="navbar">
-      {/* Left-side buttons */}
       <div className="left-buttons">
         <Link to="/dashboard" className="nav-item left">
           Dashboard
@@ -57,29 +50,55 @@ const Navbar = () => {
         </Link>
       </div>
 
-      {/* Right-side buttons */}
       <div className="right-buttons">
-
         <Link to="/profile" className="nav-item profile-btn">
           Profile
+        </Link>
+        <Link to="/tax-summary" className="nav-item settings-btn">
+          Tax Summary
         </Link>
         <Link to="/user-settings" className="nav-item settings-btn">
           Settings
         </Link>
-        <Link to="/generate-1099" className="nav-item settings-btn">
-          Generate 1099
-        </Link>
-        {userRole === "Freelancer" && (
-          <Link to="/deductions" className="nav-item deductions-btn">
-              Deductions
-          </Link>
-        )}
-        {userRole === "Freelancer" && (
-          <Link to="/reimbursements" className="nav-item reimbursement-btn">
-            Reimbursements
-          </Link>
-        )}
+
+        {/* Notifications Dropdown */}
+        <div className="dropdown">
+          <button
+            className="notifications-btn"
+            onClick={() => setShowNotifications(!showNotifications)}
+          >
+            Notifications{" "}
+            {notifications.length > 0 && `(${notifications.length})`}
+          </button>
+          <div
+            className={`notifications-dropdown ${
+              showNotifications ? "show" : ""
+            }`}
+          >
+            {notifications.length > 0 ? (
+              notifications.map((notif) => (
+                <div key={notif.id} className="notification-item">
+                  <span>{notif.message}</span>
+                  <span className="timestamp">
+                    {formatTimestamp(notif.timestamp)}
+                  </span>
+                  <button
+                    onClick={() => dismissNotification(notif.id)}
+                    className="dismiss-btn"
+                  >
+                    X
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="no-notifications">No notifications</div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* GlobalNotification component to manage notifications */}
+      <GlobalNotification onNotificationsUpdate={handleNotificationsUpdate} />
     </nav>
   );
 };

@@ -8,12 +8,6 @@
   margin-top: 20px;
 }
 
-h1 {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #e0e0e0; /* Light text for dark mode */
-}
-
 /* Job Form Styling */
 .job-form {
   width: 100%;
@@ -127,7 +121,7 @@ button:hover {
   font-weight: bold;
   text-transform: uppercase;
   margin-bottom: 10px;
-  text-align: center; /* Center text inside the status button */
+  text-align: center;
 }
 
 .job-status.open {
@@ -136,7 +130,7 @@ button:hover {
 }
 
 .job-status.accepted {
-  background-color: #295442; /* Green button for sign-up */
+  background-color: #295442;
   color: white;
 }
 

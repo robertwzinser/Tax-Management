@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ref, push, update } from "firebase/database"; // Firebase DB functions
+import { ref, push, update } from "firebase/database";
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 
@@ -83,7 +83,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
           onChange={(e) => setNewJob({ ...newJob, deadline: e.target.value })}
           required
         />
-        <button type="submit" className="submit-btn">
+        <button type="submit" className="job-button">
           Post Job
         </button>
       </form>
@@ -101,7 +101,12 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
               </p>
               {job.employerId === auth.currentUser?.uid && (
                 <>
-                  <button onClick={() => setCurrentJobId(id)}>Edit Job</button>
+                  <button
+                    className="job-button"
+                    onClick={() => setCurrentJobId(id)}
+                  >
+                    Edit Job
+                  </button>
                   {currentJobId === id && (
                     <div>
                       <input

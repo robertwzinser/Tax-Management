@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ref, update, get } from "firebase/database";
 import { auth, db } from "../../firebase";
-import "./JobBoard.css"; // Import the same CSS file
+import "./JobBoard.css";
 
 const FreelancerJobBoard = ({ jobs, setMessages }) => {
   const [acceptedJob, setAcceptedJob] = useState(null);

@@ -1,0 +1,115 @@
+/* Chatbot container */
+.chatbot-container {
+  position: fixed;
+  bottom: 60px;
+  right: 20px;
+  width: 300px;
+  max-height: 550px;
+  background-color: #1e1e1e;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  transform: translateY(100%);
+}
+
+.chatbot-container.open {
+  transform: translateY(0);
+}
+
+.chatbot-toggle {
+  background-color: #296187;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.chatbot-header {
+  background-color: #296187;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.chatbot-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chatbot-messages {
+  flex-grow: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  max-height: 340px;
+}
+
+/* Message bubbles */
+.user-message {
+  text-align: right;
+  margin: 5px;
+  padding: 10px;
+  background-color: #296187;
+  color: white;
+  border-radius: 15px 15px 0 15px;
+  margin-bottom: 15px;
+}
+
+.bot-message {
+  text-align: left;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #eee;
+  color: #1e1e1e;
+  border-radius: 15px 15px 15px 0;
+}
+
+/* Chatbot input section */
+.chatbot-input-container {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+.chatbot-input {
+  flex-grow: 1;
+  border: 1px solid #1e1e1e;
+  border-radius: 20px;
+  padding: 14px;
+  margin-right: 10px;
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.chatbot-send-btn {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  background-color: #296187;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  width: 200px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.chatbot-send-btn:hover {
+  background-color: #2980b9;
+}
+
+.chatbot-toggle:hover {
+  background-color: #2980b9;
+}

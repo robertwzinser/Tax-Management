@@ -14,14 +14,14 @@
 }
 
 .App-header {
-  background-color: #121212; /* Dark background */
+  background-color: #121212;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: #e0e0e0; /* Light text for dark mode */
+  color: #e0e0e0;
 }
 
 .App-link {
@@ -44,17 +44,17 @@ input {
   width: 100%;
   padding: 12px;
   margin-bottom: 20px;
-  border: 1px solid #555; /* Darker border for dark mode */
+  border: 1px solid #555;
   border-radius: 5px;
   font-size: 16px;
-  color: #e0e0e0; /* Light text in input */
-  background-color: #1e1e1e; /* Dark background for inputs */
+  color: #e0e0e0;
+  background-color: #1e1e1e;
   transition: border-color 0.3s ease;
-  box-sizing: border-box; /* Ensures padding and border are part of the width */
+  box-sizing: border-box;
 }
 
 input:focus {
-  border-color: #888; /* Lighter border color on focus */
+  border-color: #888;
   outline: none;
 }
 
@@ -73,55 +73,64 @@ input::placeholder {
 
 .password-input-container {
   position: relative;
-  margin-bottom: 10px; /* Adjust to a smaller value */
+  margin-bottom: 10px;
 }
 
 .password-input-container input {
-  margin-bottom: 0; /* Reset any extra margin here */
+  margin-bottom: 0;
 }
 
-/* Toggle password visibility icon */
 .password-toggle-icon {
   position: absolute;
   right: 15px;
   top: 15px;
   cursor: pointer;
-  color: #888; /* Lighter icon color for dark mode */
+  color: #888;
 }
 
 .submit-btn,
 .accept-btn,
-
-
 .submit-btn:hover,
 .accept-btn:hover,
 button:hover {
   background-color: #1f4032;
 }
 
+button {
+  display: block;
+  margin: 15px auto;
+  padding: 10px 20px;
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
 
 /* Dark mode styling for select dropdowns globally */
 select {
-  background-color: #1e1e1e; /* Dark background */
-  color: #e0e0e0; /* Light text */
-  border: 1px solid #555; /* Darker border */
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #555;
   padding: 10px;
   border-radius: 4px;
   font-size: 16px;
-  width: 100%; /* Full width to match input size */
+  width: 100%;
 }
 
 select option {
-  background-color: #1e1e1e; /* Dark background for options */
-  color: #e0e0e0; /* Light text */
+  background-color: #1e1e1e;
+  color: #e0e0e0;
 }
 
 /* Add hover and focus styles for select */
 select:focus {
   outline: none;
-  border-color: #888; /* Lighter border on focus */
+  border-color: #888;
 }
 
 select:hover {
-  border-color: #888; /* Lighter border on hover */
+  border-color: #888;
 }

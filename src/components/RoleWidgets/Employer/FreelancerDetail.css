@@ -15,8 +15,6 @@ canvas {
   margin-top: 20px;
 }
 
-
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .freelancer-detail {
@@ -127,7 +125,7 @@ canvas {
   cursor: pointer;
   text-align: center;
   width: 200px;
-  text-decoration: none;  
+  text-decoration: none;
   transition: background-color 0.3s ease;
 }
 .add-income-button:hover {

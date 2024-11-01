@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ref, onValue, push } from "firebase/database";
-import { auth, db } from "../firebase";
-import './Messaging.css';
+import { auth, db } from "../../firebase";
+import "./Messaging.css";
 
 const Messaging = () => {
   const [employers, setEmployers] = useState([]);
@@ -12,6 +12,12 @@ const Messaging = () => {
   const [message, setMessage] = useState("");
   const userId = auth.currentUser?.uid;
   const [userRole, setUserRole] = useState("");
+
+  // Utility function to format timestamps
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  };
 
   // Fetch user role (freelancer or employer)
   useEffect(() => {
@@ -24,7 +30,7 @@ const Messaging = () => {
     });
   }, [userId]);
 
-  // Fetch employers for freelancers or freelancers for employers
+  // Fetch employers or freelancers based on user role
   useEffect(() => {
     if (userRole === "Freelancer") {
       const freelancerRef = ref(db, `users/${userId}/linkedEmployers`);
@@ -66,20 +72,31 @@ const Messaging = () => {
         if (data) {
           setMessages(Object.values(data));
         } else {
-          setMessages([]); // Clear messages if no data
+          setMessages([]);
         }
       });
     }
   }, [selectedEmployer, selectedFreelancer, userRole, userId]);
 
-  // Handle sending a message
+  // Handle sending a message and adding a notification for the recipient
   const handleSendMessage = async () => {
     if (selectedEmployer || selectedFreelancer) {
-      let messageRef;
+      let messageRef, notificationRef, recipientId, recipientName;
+
+      // Define paths based on user role
       if (userRole === "Freelancer") {
         messageRef = ref(db, `messages/${selectedEmployer}/${userId}`);
+        notificationRef = ref(db, `notifications/${selectedEmployer}`);
+        recipientId = selectedEmployer;
+        recipientName = employers.find(([id]) => id === selectedEmployer)?.[1]
+          ?.name;
       } else if (userRole === "Employer") {
         messageRef = ref(db, `messages/${userId}/${selectedFreelancer}`);
+        notificationRef = ref(db, `notifications/${selectedFreelancer}`);
+        recipientId = selectedFreelancer;
+        recipientName = freelancers.find(
+          ({ freelancerId }) => freelancerId === selectedFreelancer
+        )?.freelancerName;
       }
 
       const newMessage = {
@@ -88,8 +105,41 @@ const Messaging = () => {
         timestamp: Date.now(),
       };
 
+      // Fetch the current user's name
+      const userRef = ref(db, `users/${userId}`);
+      let senderName = "User";
+      await new Promise((resolve) => {
+        onValue(
+          userRef,
+          (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+              senderName = `${userData.firstname} ${userData.lastname}`;
+            }
+            resolve();
+          },
+          { onlyOnce: true }
+        );
+      });
+
+      const notification = {
+        message: `New message from ${senderName}`,
+        fromId: userId,
+        fromName: senderName,
+        toId: recipientId,
+        toName: recipientName,
+        timestamp: Date.now(),
+        type: "message",
+      };
+
       try {
+        // Push the new message to the database
         await push(messageRef, newMessage);
+
+        // Push the notification to the recipient's notifications
+        await push(notificationRef, notification);
+
+        // Clear the message input field
         setMessage("");
       } catch (error) {
         console.error("Error sending message:", error.message);
@@ -108,14 +158,17 @@ const Messaging = () => {
               onChange={(e) => setSelectedEmployer(e.target.value)}
               value={selectedEmployer || ""}
             >
-              <option value="" disabled>Select Employer</option>
+              <option value="" disabled>
+                Select Employer
+              </option>
               {employers.map(([id, employer]) => (
-                <option key={id} value={id}>{employer.name}</option>
+                <option key={id} value={id}>
+                  {employer.name}
+                </option>
               ))}
             </select>
           </>
         )}
-
         {userRole === "Employer" && (
           <>
             <label>Freelancer:</label>
@@ -123,9 +176,13 @@ const Messaging = () => {
               onChange={(e) => setSelectedFreelancer(e.target.value)}
               value={selectedFreelancer || ""}
             >
-              <option value="" disabled>Select Freelancer</option>
+              <option value="" disabled>
+                Select Freelancer
+              </option>
               {freelancers.map(({ freelancerId, freelancerName }) => (
-                <option key={freelancerId} value={freelancerId}>{freelancerName}</option>
+                <option key={freelancerId} value={freelancerId}>
+                  {freelancerName}
+                </option>
               ))}
             </select>
           </>
@@ -135,8 +192,16 @@ const Messaging = () => {
       <div className="message-list">
         {messages.length > 0 ? (
           messages.map((msg, idx) => (
-            <div key={idx} className={`message-item ${msg.senderId === userId ? "sent" : "received"}`}>
+            <div
+              key={idx}
+              className={`message-item ${
+                msg.senderId === userId ? "sent" : "received"
+              }`}
+            >
               <p>{msg.text}</p>
+              <span className="timestamp">
+                {formatTimestamp(msg.timestamp)}
+              </span>
             </div>
           ))
         ) : (
@@ -150,7 +215,7 @@ const Messaging = () => {
         onChange={(e) => setMessage(e.target.value)}
       />
       <button
-        className="send-btn"
+        className="job-button"
         onClick={handleSendMessage}
         disabled={!selectedEmployer && !selectedFreelancer}
       >

@@ -1,103 +1,99 @@
-.layout-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.content-container {
-  flex-grow: 1;
-  padding: 20px;
-}
-
+/* Navbar Styles */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  padding: 10px 20px;
-  background-color: #333;
-  border-radius: 5px;
-  width: 100%; /* Make the navbar take up the full width of its container */
-  max-width: 1200px; /* Limit the navbar's max width */
-}
-
-.navbar-container {
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.navbar {
-  display: flex;
-  justify-content: space-between; /* Space between left and right sections */
-  align-items: center;
   padding: 10px 20px;
   background-color: #1e1e1e;
   border-radius: 5px;
-  width: 100%;
   max-width: 1200px;
-  margin: 0 auto; /* Center the navbar */
+  margin: 0 auto;
+  width: 100%;
 }
 
-.left-buttons {
-  display: flex;
-  gap: 10px; /* Space between the left side buttons */
-}
-
+/* Button Containers */
+.left-buttons,
 .right-buttons {
   display: flex;
-  gap: 10px; /* Space between the right side buttons */
+  gap: 10px;
 }
 
+/* General Navbar Item Styling */
 .nav-item {
+  display: flex;
+  align-items: center;
   color: white;
   text-decoration: none;
   padding: 10px 15px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  text-align: center;
-}
-
-.nav-item.left,
-.nav-item.center {
+  font-size: 1rem;
+  line-height: 1.5;
   background-color: #295442;
 }
 
-.nav-item.left:hover,
-.nav-item.center:hover {
+.nav-item:hover {
   background-color: #1f4032;
 }
 
+/* Specific Button Styles */
 .nav-item.profile-btn {
-  background-color: #f39c12; /* Orange for profile-related buttons */
+  background-color: #f39c12;
 }
 
 .nav-item.profile-btn:hover {
-  background-color: #cc8310; /* Orange for profile-related buttons */
+  background-color: #cc8310;
 }
 
 .nav-item.settings-btn {
-  background-color: #e74c3c; /* Red for settings buttons */
+  background-color: #e74c3c;
 }
 
 .nav-item.settings-btn:hover {
-  background-color: #ba3d30; /* Red for settings buttons */
+  background-color: #ba3d30;
 }
 
-.nav-item.reimbursement-btn {
-  background-color: #3e66a3; /* Red for settings buttons */
-}
-
-.nav-item.reimbursement-btn:hover {
-  background-color: #304b74; /* Red for settings buttons */
-}
-
+.nav-item.reimbursement-btn,
 .nav-item.deductions-btn {
-  background-color: #3e66a3; /* Red for settings buttons */
+  background-color: #3e66a3;
 }
 
+.nav-item.reimbursement-btn:hover,
 .nav-item.deductions-btn:hover {
-  background-color: #304b74; /* Red for settings buttons */
+  background-color: #304b74;
+}
+
+/* Notifications Button */
+.notifications-btn {
+  position: relative;
+  margin: auto;
+}
+
+/* Notifications Button */
+.notifications-btn {
+  position: relative;
+  color: white;
+  background-color: #296187;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  min-width: 100px;
+}
+
+.notifications-btn:hover {
+  background-color: #30507e;
+}
+
+.dropdown {
+  position: relative;
+  color: white;
+  background-color: #296187;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  min-width: 100px;
 }

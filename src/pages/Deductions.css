@@ -1,134 +1,138 @@
 /* Container */
 .deductions-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 40px;
-    background-color: #121212; /* Dark background */
-    color: #ffffff; /* Light text */
-    min-height: 100vh;
-    font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 40px;
+  background-color: #121212; 
+  color: #ffffff; 
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Deduction Form */
+.deduction-form {
+  background-color: #1e1e1e; 
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); 
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.deduction-input {
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+}
+
+.deduction-input label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #bbbbbb; 
+}
+
+.deduction-input input {
+  background-color: #2b2b2b;
+  color: #ffffff;
+  padding: 10px 15px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.deduction-input input:focus {
+  border-color: #1976d2; 
+  outline: none;
+}
+
+.deduction-input input::placeholder {
+  color: #888888;
+}
+
+.submit-button:hover,
+.add-button:hover,
+.submitted-deductions button:hover {
+  background-color: #145a9d;
+}
+
+.submitted-deductions button {
+  margin-left: 10px;
+  padding: 8px 15px;
+  font-size: 14px;
+}
+
+/* Deduction Summary */
+.deduction-summary {
+  margin-top: 30px;
+  text-align: center;
+  padding: 20px;
+  background-color: #2a2a2a;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid #444;
+}
+
+.deduction-summary h2 {
+  font-family: "Poppins", sans-serif;
+  color: #ffffff;
+  font-size: 24px;
+  margin: 10px 0;
+}
+
+/* Submitted Deductions */
+.submitted-deductions {
+  margin-top: 40px;
+  width: 100%;
+  max-width: 600px;
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.submitted-deductions ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.submitted-deductions li {
+  background-color: #2b2b2b;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.submitted-deductions li div {
+  color: #bbbbbb;
+}
+
+.submitted-deductions li:hover {
+  background-color: #373737;
+}
+
+@media only screen and (max-width: 768px) {
+  .deduction-form,
+  .deduction-summary,
+  .submitted-deductions {
+    padding: 15px;
   }
-  
-  /* Deduction Form */
-  .deduction-form {
-    background-color: #1e1e1e; /* Slightly lighter background */
-    padding: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Soft shadow for depth */
-    border-radius: 10px;
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .deduction-input {
-    margin-bottom: 25px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .deduction-input label {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #bbbbbb; /* Light gray for labels */
-  }
-  
+
   .deduction-input input {
-    background-color: #2b2b2b;
-    color: #ffffff;
-    padding: 10px 15px;
-    border: 1px solid #444;
-    border-radius: 6px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-  }
-  
-  .deduction-input input:focus {
-    border-color: #1976d2; /* Highlight border on focus */
-    outline: none;
-  }
-  
-  .deduction-input input::placeholder {
-    color: #888888;
-  }
-  
-  .submit-button:hover, .add-button:hover, .submitted-deductions button:hover {
-    background-color: #145a9d; /* Darken on hover */
-  }
-  
-  .submitted-deductions button {
-    margin-left: 10px;
-    padding: 8px 15px;
     font-size: 14px;
   }
-  
-  /* Deduction Summary */
-  .deduction-summary {
-    margin-top: 30px;
-    text-align: center;
-    padding: 20px;
-    background-color: #2a2a2a;
-    border-radius: 10px;
-    width: 100%;
-    max-width: 600px;
-    border: 1px solid #444;
+
+  .submit-button,
+  .add-button {
+    font-size: 14px;
   }
-  
-  .deduction-summary h2 {
-    font-family: 'Poppins', sans-serif;
-    color: #ffffff;
-    font-size: 24px;
-    margin: 10px 0;
-  }
-  
-  /* Submitted Deductions */
-  .submitted-deductions {
-    margin-top: 40px;
-    width: 100%;
-    max-width: 600px;
-    background-color: #1e1e1e;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid #333;
-  }
-  
-  .submitted-deductions ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .submitted-deductions li {
-    background-color: #2b2b2b;
-    padding: 15px 20px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .submitted-deductions li div {
-    color: #bbbbbb;
-  }
-  
-  .submitted-deductions li:hover {
-    background-color: #373737;
-  }
-  
-  @media only screen and (max-width: 768px) {
-    /* Responsive styling for mobile */
-    .deduction-form, .deduction-summary, .submitted-deductions {
-      padding: 15px;
-    }
-  
-    .deduction-input input {
-      font-size: 14px;
-    }
-  
-    .submit-button, .add-button {
-      font-size: 14px;
-    }
-  }
+}

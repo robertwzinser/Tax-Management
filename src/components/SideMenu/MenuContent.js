@@ -10,12 +10,15 @@ import AnalyticsRoundedIcon from "@mui/icons-material/AnalyticsRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
-import { Link } from "react-router-dom"; // Import Link from react-router-dom
+import { Link, useLocation } from "react-router-dom";
 
-const iconStyle = { color: "white" }; // Set all icons to white
-
+const iconStyle = { color: "white" };
 const mainListItems = [
-  { text: "Dashboard", icon: <HomeRoundedIcon sx={iconStyle} />, link: "/" },
+  {
+    text: "Dashboard",
+    icon: <HomeRoundedIcon sx={iconStyle} />,
+    link: "/dashboard",
+  },
   {
     text: "Job Board",
     icon: <PeopleRoundedIcon sx={iconStyle} />,
@@ -38,6 +41,8 @@ const secondaryListItems = [
 ];
 
 export default function MenuContent() {
+  const location = useLocation(); // Get the current URL path
+
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: "space-between" }}>
       <List dense>
@@ -46,7 +51,7 @@ export default function MenuContent() {
             <ListItemButton
               component={Link}
               to={item.link}
-              selected={index === 0}
+              selected={location.pathname === item.link}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} sx={{ color: "white" }} />
@@ -58,7 +63,11 @@ export default function MenuContent() {
       <List dense>
         {secondaryListItems.map((item, index) => (
           <ListItem key={index} disablePadding sx={{ display: "block" }}>
-            <ListItemButton component={Link} to={item.link}>
+            <ListItemButton
+              component={Link}
+              to={item.link}
+              selected={location.pathname === item.link}
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} sx={{ color: "white" }} />
             </ListItemButton>

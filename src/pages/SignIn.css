@@ -2,8 +2,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
-  background-color: #121212; /* Dark background for the entire page */
-  color: #e0e0e0; /* Light text for dark mode */
+  background-color: #121212;
+  color: #e0e0e0;
 }
 
 /* Sign-in container */
@@ -18,9 +18,9 @@ body {
 }
 
 .sign-in-box {
-  background-color: rgba(33, 33, 33, 0.9); /* Dark background with slight transparency */
+  background-color: rgba(33, 33, 33, 0.9);
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Darker shadow for dark mode */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   padding: 40px;
   max-width: 400px;
   width: 100%;
@@ -29,47 +29,45 @@ body {
 /* Heading */
 h1 {
   font-size: 28px;
-  color: #ffffff; /* Light heading text */
+  color: #ffffff;
   text-align: center;
   margin-bottom: 20px;
 }
 
-/* Register text styling */
 .register-text {
   font-size: 14px;
-  color: #e0e0e0; /* Light text for the register prompt */
+  color: #e0e0e0;
   text-align: center;
   margin-bottom: 10px;
 }
 
 .register-text a {
-  color: #61dafb; /* Light blue links */
+  color: #61dafb;
   text-decoration: none;
   font-weight: bold;
 }
 
 .register-text a:hover {
-  color: #b3e5fc; /* Lighter blue on hover */
+  color: #b3e5fc;
 }
 
 /* Forgot Password text */
 .forgot-password-text {
   font-size: 14px;
-  color: #61dafb; /* Light blue text */
+  color: #61dafb;
   text-align: center;
 }
 
 .forgot-password-text a {
-  color: #61dafb; /* Light blue links */
+  color: #61dafb;
   text-decoration: none;
 }
 
 .forgot-password-text a:hover {
-  color: #b3e5fc; /* Lighter blue on hover */
+  color: #b3e5fc;
 }
 
 /* Role Selector */
 .roleselector {
   text-align: center;
 }
-

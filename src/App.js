@@ -13,46 +13,47 @@ import Profile from "./pages/Profile";
 import UserSettings from "./pages/UserSettings";
 import DailyIncome from "./components/RoleWidgets/Freelancer/DailyIncome";
 import JobBoard from "./pages/JobBoard";
-import Generate1099 from "./pages/1099";
+import TaxSummary from "./pages/TaxSummary";
 import Reimbursements from "./pages/Reimbursements";
 import Layout from "./components/Navbar/Layout";
 import AboutPage from "./pages/About";
-import Messaging from "./components/Messaging";
+import Messaging from "./components/Messaging/Messaging";
 import Deductions from "./pages/Deductions";
+import GlobalNotification from "./components/Notifications/GlobalNotification";
 import ReceiptUploader from "./pages/ReceiptUploader";
 import { onAuthStateChanged } from "firebase/auth"; // Import Firebase auth listener
 import { auth } from "./firebase"; // Import your Firebase config
 
-// Import missing components here
-import FreelancerDetail from "./components/RoleWidgets/Employer/FreelancerDetail"; // Ensure the correct path
-import AddIncomeForm from "./components/RoleWidgets/Employer/AddIncomeForm"; // Ensure the correct path
+import FreelancerDetail from "./components/RoleWidgets/Employer/FreelancerDetail";
+import AddIncomeForm from "./components/RoleWidgets/Employer/AddIncomeForm";
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true); // Add loading state to wait for auth check
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for changes in the user's authentication state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setIsLoggedIn(true); // User is authenticated
+        setIsLoggedIn(true);
       } else {
-        setIsLoggedIn(false); // User is not authenticated
+        setIsLoggedIn(false);
       }
-      setLoading(false); // Set loading to false after auth check
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   if (loading) {
-    return <div></div>; // Display a loading state
+    return <div></div>; // Loading state
   }
 
   return (
     <Router>
+      {isLoggedIn && <GlobalNotification />}{" "}
+      {/* Show GlobalNotification only if logged in */}
       <Routes>
-        {/* Default route - redirect to sign-in if not logged in */}
+        {/* Default route */}
         <Route
           path="/"
           element={
@@ -95,10 +96,9 @@ const App = () => {
             element={isLoggedIn ? <JobBoard /> : <Navigate to="/sign-in" />}
           />
           <Route
-            path="/generate-1099"
-            element={isLoggedIn ? <Generate1099 /> : <Navigate to="/sign-in" />}
+            path="/tax-summary"
+            element={isLoggedIn ? <TaxSummary /> : <Navigate to="/sign-in" />}
           />
-
           <Route
             path="/deductions"
             element={isLoggedIn ? <Deductions /> : <Navigate to="/sign-in" />}
@@ -113,7 +113,6 @@ const App = () => {
               isLoggedIn ? <Reimbursements /> : <Navigate to="/sign-in" />
             }
           />
-          {/* Freelancer Detail and Add Income routes */}
           <Route
             path="/freelancer/:freelancerId"
             element={
@@ -126,7 +125,6 @@ const App = () => {
               isLoggedIn ? <AddIncomeForm /> : <Navigate to="/sign-in" />
             }
           />
-
           <Route path="/about" element={<AboutPage />} />
         </Route>
       </Routes>

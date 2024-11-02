@@ -31,18 +31,22 @@ const SignIn = () => {
     e.preventDefault();
     try {
       // Authenticate user with email and password
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
-  
+
       // Get user data from Realtime Database
       const userRef = ref(db, "users/" + user.uid);
       const snapshot = await get(userRef);
-      
+
       if (snapshot.exists()) {
         const userData = snapshot.val();
         const firstname = userData.firstname;
         const role = userData.role; // Get the role from the database
-  
+
         // Check role and navigate accordingly
         if (role === "Employer") {
           navigate("/dashboard", { state: { firstname } });
@@ -59,7 +63,6 @@ const SignIn = () => {
       console.error("There was a problem signing you in:", error.message);
     }
   };
-  
 
   return (
     <section className="sign-in-container">

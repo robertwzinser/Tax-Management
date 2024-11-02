@@ -4,8 +4,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import SideMenu from "../SideMenu/SideMenu";
 import Box from "@mui/material/Box";
-import Chatbot from "../Chatbot";
-
+import Chatbot from "../Chatbot/Chatbot";
 
 const drawerWidth = 0;
 
@@ -25,7 +24,7 @@ const Layout = () => {
       >
         <Navbar />
         <Outlet />
-        <Chatbot /> 
+        <Chatbot />
       </Box>
     </Box>
   );

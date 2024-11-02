@@ -8,12 +8,6 @@
   margin-top: 20px;
 }
 
-h1 {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #e0e0e0; /* Light text for dark mode */
-}
-
 /* Job Form Styling */
 .job-form {
   width: 100%;
@@ -82,9 +76,9 @@ textarea {
   margin-bottom: 10px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #555; /* Dark border */
-  background-color: #1e1e1e; /* Dark background */
-  color: #e0e0e0; /* Light text */
+  border: 1px solid #555;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
 }
 
 button.send-btn {
@@ -106,7 +100,7 @@ button {
   display: block;
   margin: 10px auto;
   padding: 10px 20px;
-  background-color: #296187;
+  background-color: #3e66a3;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -116,7 +110,7 @@ button {
 }
 
 button:hover {
-  background-color: #2980b9;
+  background-color: #304b74;
 }
 
 /* Job Status Styling */
@@ -127,7 +121,7 @@ button:hover {
   font-weight: bold;
   text-transform: uppercase;
   margin-bottom: 10px;
-  text-align: center; /* Center text inside the status button */
+  text-align: center;
 }
 
 .job-status.open {
@@ -136,7 +130,7 @@ button:hover {
 }
 
 .job-status.accepted {
-  background-color: #295442; /* Green button for sign-up */
+  background-color: #295442;
   color: white;
 }
 

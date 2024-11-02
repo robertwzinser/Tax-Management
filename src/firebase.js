@@ -11,7 +11,7 @@ const firebaseConfig = {
   storageBucket: "taxzilla-787ee.appspot.com",
   messagingSenderId: "217938085702",
   appId: "1:217938085702:web:627eac7504943198968747",
-  measurementId: "G-RLFSPRTKV0"
+  measurementId: "G-RLFSPRTKV0",
 };
 
 // Initialize Firebase

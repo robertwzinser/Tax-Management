@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import {
-  onAuthStateChanged
-} from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { ref, onValue, equalTo, query, orderByChild } from "firebase/database";
 import "./Dashboard.css";
 // Import role-specific components
-import { EmployerWidgets } from '../components/RoleWidgets/Employer/EmployerWidgets';
+import { EmployerWidgets } from "../components/RoleWidgets/Employer/EmployerWidgets";
 import { FreelancerWidgets } from "../components/RoleWidgets/Freelancer/FreelancerWidgets";
 
 const Dashboard = () => {
@@ -16,12 +14,11 @@ const Dashboard = () => {
   const [incomeData, setIncomeData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
   const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true) 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setLoading (true)
-      console.log ("test")
+      setLoading(true);
       if (user) {
         const userId = user.uid;
 
@@ -32,7 +29,9 @@ const Dashboard = () => {
             setUserRole(userData.role || "No role assigned");
             setFirstname(userData.firstname || "User"); // Fetch firstname from Firebase
             if (userData.role === "Employer") {
-              setBusinessName(userData.businessName || "Business Name Not Available"); // Fetch business name
+              setBusinessName(
+                userData.businessName || "Business Name Not Available"
+              ); // Fetch business name
             }
           }
         });
@@ -49,66 +48,67 @@ const Dashboard = () => {
         const fetchdata = async () => {
           const fetchExpenses = async () => {
             const expenseRef = ref(db, "expenseCollection");
-            const q = query(expenseRef, orderByChild("employer"), equalTo(userId));
+            const q = query(
+              expenseRef,
+              orderByChild("employer"),
+              equalTo(userId)
+            );
             let data = {};
-            
+
             onValue(q, (snapshot) => {
               data = snapshot.val();
             });
-          
+
             // Check if data exists before calling Object.entries
             if (!data) {
               return []; // Return an empty array if there's no data
             }
-          
+
             const expenseArray = Object.entries(data).map(([key, value]) => ({
               id: key,
               ...value,
             }));
-          
+
             return expenseArray;
           };
-          
-       const data = await fetchExpenses ()
 
-       const filterData = data.filter((expense)=> expense.accepted === undefined )
-       setExpenseData(filterData)
-       console.log(data)
-      }
-      fetchdata()
-        setLoading (false)
+          const data = await fetchExpenses();
+
+          const filterData = data.filter(
+            (expense) => expense.accepted === undefined
+          );
+          setExpenseData(filterData);
+        };
+        fetchdata();
+        setLoading(false);
       } else {
         // User is signed out
-        setUserRole(""); // Reset role or handle as needed
+        setUserRole(""); // Reset role or
         setTaxData({});
         setIncomeData([]);
         setLoading(false);
       }
     });
-    
-   
-    
-    return () => unsubscribe(); // Clean up the subscription
+
+    return () => unsubscribe(); // Clean up subscription
   }, []);
 
-  console.log(expenseData)
-  if (loading){
-    return <h2> loading </h2>
+  if (loading) {
+    return <h2> loading </h2>;
   }
   return (
     <div className="dashboard-container">
       <div>
         <h1>Welcome, {firstname}!</h1>
-        <p>Your role: {userRole}</p> {/* Display the user's role here */}
+        <p>Your role: {userRole}</p>
         {userRole === "Employer" && <p>Your Business: {businessName}</p>}
-
       </div>
 
       <div className="dashboard-widgets">
         {userRole === "Freelancer" ? (
           <FreelancerWidgets taxData={taxData} incomeData={incomeData} />
         ) : (
-          <EmployerWidgets expenseData = {expenseData} />
+          <EmployerWidgets expenseData={expenseData} />
         )}
       </div>
     </div>

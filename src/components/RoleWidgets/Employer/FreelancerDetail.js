@@ -20,7 +20,7 @@ const FreelancerDetail = () => {
   const [jobs, setJobs] = useState([]);
   const [incomeData, setIncomeData] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [totalExpenses, setTotalExpenses] = useState(0); 
+  const [totalExpenses, setTotalExpenses] = useState(0);
   const [chartInstance, setChartInstance] = useState(null);
 
   // Fetch freelancer details
@@ -92,9 +92,9 @@ const FreelancerDetail = () => {
 
         // Calculate the total of accepted expenses and set it to the state
         const total = freelancerExpenses
-          .filter((expense) => expense.accepted !== false)  // Exclude rejected expenses
+          .filter((expense) => expense.accepted !== false) // Exclude rejected expenses
           .reduce((sum, expense) => sum + parseFloat(expense.expense), 0);
-          
+
         setTotalExpenses(total);
       } else {
         // If no data is returned, set empty expenses array
@@ -103,7 +103,6 @@ const FreelancerDetail = () => {
       }
     });
   }, [freelancerId]);
-
 
   const handleExpenseDecision = async (expenseId, decision) => {
     const expenseRef = ref(db, `expenseCollection/${expenseId}`);
@@ -194,7 +193,7 @@ const FreelancerDetail = () => {
           </Box>
 
           <Box>
-            <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
+            <Typography variant="h5" component="h3" sx={{ mb: 5 }}>
               Jobs Worked
             </Typography>
             {jobs.length === 0 ? (
@@ -256,8 +255,9 @@ const FreelancerDetail = () => {
           </Box>
 
           <Box sx={{ mt: 4 }}>
-            <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
-              Freelancer Reimbursements (Total: ${totalExpenses.toFixed(2)}) {/* Display total */}
+            <Typography variant="h5" component="h3" sx={{ mb: 5 }}>
+              Freelancer Reimbursements (Total: ${totalExpenses.toFixed(2)}){" "}
+              {/* Display total */}
             </Typography>
             {expenses.length > 0 ? (
               expenses.map((expense, index) => (
@@ -344,7 +344,7 @@ const FreelancerDetail = () => {
               component={Link}
               to={`/add-income/${freelancerId}`}
             >
-              Add Income
+              Add Income for This Employee
             </Button>
           </Box>
         </>

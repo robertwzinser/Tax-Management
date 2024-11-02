@@ -241,7 +241,7 @@ const Reimbursements = () => {
           <button type="button" onClick={addInput}>
             Add New Reimbursements
           </button>
-          <button type="submit" className="submit-button" disabled={upload}>
+          <button type="submit" disabled={upload}>
             Submit
           </button>
         </form>

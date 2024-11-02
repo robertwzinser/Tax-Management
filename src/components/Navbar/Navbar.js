@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import GlobalNotification from "../../components/Notifications/GlobalNotification";
-import { getDatabase, ref, remove } from "firebase/database";
-import { getAuth } from "firebase/auth";
+import { getDatabase, ref, remove, child, get } from "firebase/database";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import "./Navbar.css";
 import "../Notifications/Notifications.css";
 
@@ -12,6 +13,9 @@ const Navbar = () => {
 
   const auth = getAuth();
   const db = getDatabase();
+
+  const [userRole, setUserRole] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Update notifications state when GlobalNotification fetches new data
   const handleNotificationsUpdate = (newNotifications) => {
@@ -36,17 +40,40 @@ const Navbar = () => {
   // Format timestamp
   const formatTimestamp = (timestamp) => new Date(timestamp).toLocaleString();
 
+  useEffect(() => {
+    const dbRef = ref(getDatabase());
+
+    const fetchUserRole = async (userId) => {
+      try {
+        const snapshot = await get(child(dbRef, `users/${userId}`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setUserRole(data.role);
+        } else {
+          console.log("No user data available");
+        }
+      } catch (error) {
+        console.error("Error fetching user role: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserRole(user.uid);
+      } else {
+        setUserRole("");
+        setLoading(false);
+      }
+    });
+  }, []);
+
   return (
     <nav className="navbar">
       <div className="left-buttons">
         <Link to="/dashboard" className="nav-item left">
           Dashboard
-        </Link>
-        <Link to="/job-board" className="nav-item left">
-          Job Board
-        </Link>
-        <Link to="/inbox" className="nav-item left">
-          Inbox
         </Link>
       </div>
 
@@ -54,22 +81,26 @@ const Navbar = () => {
         <Link to="/profile" className="nav-item profile-btn">
           Profile
         </Link>
-        <Link to="/tax-summary" className="nav-item settings-btn">
-          Tax Summary
-        </Link>
-        <Link to="/user-settings" className="nav-item settings-btn">
+
+        <Link to="/user-settings" className="nav-item profile-btn">
           Settings
         </Link>
 
         {/* Notifications Dropdown */}
         <div className="dropdown">
-          <button
+          <Link
+            to="#"
             className="notifications-btn"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={(e) => {
+              e.preventDefault();
+              setShowNotifications(!showNotifications);
+            }}
           >
-            Notifications{" "}
-            {notifications.length > 0 && `(${notifications.length})`}
-          </button>
+            <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
+            {notifications.length > 0 && (
+              <span className="notification-count">{notifications.length}</span>
+            )}
+          </Link>
           <div
             className={`notifications-dropdown ${
               showNotifications ? "show" : ""

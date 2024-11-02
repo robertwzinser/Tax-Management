@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ref, push, update, query, orderByChild, equalTo, get } from "firebase/database"; // Firebase DB functions
+import {
+  ref,
+  push,
+  update,
+  query,
+  orderByChild,
+  equalTo,
+  get,
+} from "firebase/database"; // Firebase DB functions
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 
@@ -19,21 +27,26 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Only employers can post jobs.");
       return;
     }
-    let data = {}
-    const businessRef = ref (db, "businesses")
-    const userBusiness = query (businessRef, orderByChild ("owner"), equalTo(userId))
+    let data = {};
+    const businessRef = ref(db, "businesses");
+    const userBusiness = query(
+      businessRef,
+      orderByChild("owner"),
+      equalTo(userId)
+    );
     try {
-    const snapshot = await get (userBusiness) 
-    if (snapshot.exists())
-    data = snapshot.val()
-    console.log(data)
+      const snapshot = await get(userBusiness);
+      if (snapshot.exists()) data = snapshot.val();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
     }
-    catch (error){console.log(error)}
-    console.log(data)
-    const business = Object.entries (data).map(([key, value]) => ({
-      id: key, ... value
-    }))
-    console.log(business)
+    console.log(data);
+    const business = Object.entries(data).map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+    console.log(business);
     const jobRef = ref(db, `businesses/${business[0].id}/jobs/active`);
     const newJobEntry = {
       ...newJob,
@@ -58,28 +71,33 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Only employers can post jobs.");
       return;
     }
-    let data = {}
-    const businessRef = ref (db, "businesses")
-    const userBusiness = query (businessRef, orderByChild ("owner"), equalTo(userId))
+    let data = {};
+    const businessRef = ref(db, "businesses");
+    const userBusiness = query(
+      businessRef,
+      orderByChild("owner"),
+      equalTo(userId)
+    );
     try {
-    const snapshot = await get (userBusiness) 
-    if (snapshot.exists())
-    data = snapshot.val()
-    console.log(data)
+      const snapshot = await get(userBusiness);
+      if (snapshot.exists()) data = snapshot.val();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
     }
-    catch (error){console.log(error)}
-    console.log(data)
-    const business = Object.entries (data).map(([key, value]) => ({
-      id: key, ... value
-    }))
-    console.log(business)
+    console.log(data);
+    const business = Object.entries(data).map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+    console.log(business);
     const jobRef = ref(db, `businesses/${business[0].id}/jobs/active/${jobId}`);
-    const updates = Object.keys(newJob).reduce((change, key)=> {
-      if(newJob[key]!== ""){
-        change[key]=newJob[key]
+    const updates = Object.keys(newJob).reduce((change, key) => {
+      if (newJob[key] !== "") {
+        change[key] = newJob[key];
       }
-      return change
-    }, {})
+      return change;
+    }, {});
     try {
       await update(jobRef, updates);
       alert("Job updated successfully!");
@@ -89,7 +107,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Error updating job. Please try again.");
     }
   };
-  
+
   return (
     <div>
       <h1>Manage Your Jobs</h1>
@@ -123,9 +141,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
           onChange={(e) => setNewJob({ ...newJob, deadline: e.target.value })}
           required
         />
-        <button type="submit" className="job-button">
-          Post Job
-        </button>
+        <button type="submit">Post Job</button>
       </form>
 
       <div className="job-list">
@@ -141,13 +157,10 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
               </p>
               {job.employerId === auth.currentUser?.uid && (
                 <>
-                  <button
-                    className="job-button"
-                    onClick={() => setCurrentJobId(id)}
-                  >
+                  <button onClick={() => setCurrentJobId(job.id)}>
                     Edit Job
                   </button>
-                  {currentJobId === id && (
+                  {currentJobId === job.id && (
                     <div>
                       <input
                         type="text"

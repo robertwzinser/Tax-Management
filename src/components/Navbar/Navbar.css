@@ -65,25 +65,22 @@
 
 /* Notifications Button */
 .notifications-btn {
-  position: relative;
-  margin: auto;
-}
-
-/* Notifications Button */
-.notifications-btn {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
-  background-color: #296187;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1.5;
+  width: 20px;
+  text-decoration: none;
+  padding: 10px 15px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  min-width: 100px;
+  font-size: 1rem;
+  line-height: 1.5;
+  background-color: #3e66a3;
 }
 
 .notifications-btn:hover {
-  background-color: #30507e;
+  background-color: #304b74;
 }
 
 .dropdown {
@@ -95,5 +92,20 @@
   line-height: 1.5;
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  min-width: 100px;
+}
+
+.notification-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: red;
+  color: rgb(255, 255, 255);
+  font-size: 10px;
+  font-weight: bolder;
+  padding: 2px 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
 }

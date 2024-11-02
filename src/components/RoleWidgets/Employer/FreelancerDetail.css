@@ -47,7 +47,7 @@ canvas {
   font-weight: bold;
   text-transform: uppercase;
   text-align: center;
-  margin: 20px auto; /* Ensure the button is centered */
+  margin: 20px auto;
 }
 
 .expense-status.open {
@@ -63,8 +63,8 @@ canvas {
 /* Button styling for Accept/Reject */
 .expense-actions {
   display: flex;
-  justify-content: center; /* Center the buttons horizontally */
-  gap: 10px; /* Add some space between the buttons */
+  justify-content: center; 
+  gap: 10px;
 }
 
 .expense-actions button {
@@ -82,11 +82,11 @@ canvas {
 }
 
 .expense-actions button.reject {
-  background-color: #e74c3c; /* Red color for the reject button */
+  background-color: #e74c3c; 
 }
 
 .expense-actions button.reject:hover {
-  background-color: #c0392b; /* Darker red on hover */
+  background-color: #c0392b; 
 }
 
 /* Centering Buttons */
@@ -118,7 +118,7 @@ canvas {
   display: block;
   margin: 10px auto;
   padding: 10px 20px;
-  background-color: #296187;
+  background-color: #3e66a3;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -129,7 +129,7 @@ canvas {
   transition: background-color 0.3s ease;
 }
 .add-income-button:hover {
-  background-color: #2980b9;
+  background-color: #304b74;
 }
 
 .receipt-gap {

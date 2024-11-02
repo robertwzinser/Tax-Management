@@ -36,7 +36,7 @@
 .expense-item label {
   margin-bottom: 5px;
   font-weight: bold;
-  color: #e0e0e0; /* Light label text */
+  color: #e0e0e0;
 }
 
 .expense-item select,
@@ -81,21 +81,6 @@
 
 .expense-item button:hover {
   background-color: #e53935;
-}
-
-/* Submit Button */
-.submit-button {
-  background-color: #295442;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-.submit-button:hover {
-  background-color: #1f4032;
 }
 
 /* Add New Expense Button */

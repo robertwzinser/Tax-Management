@@ -5,19 +5,19 @@ import MenuItem from "@mui/material/MenuItem";
 import { styled } from "@mui/material/styles";
 
 const Avatar = styled(MuiAvatar)(({ theme }) => ({
-  width: 100, 
-  height: 60, 
-  borderRadius: 0, 
-  border: "none", 
-  backgroundColor: "transparent", 
+  width: 100,
+  height: 60,
+  borderRadius: 0,
+  border: "none",
+  backgroundColor: "transparent",
   "&:hover": {
-    backgroundColor: "transparent", 
+    backgroundColor: "transparent",
   },
 }));
 
 const ListItemAvatar = styled(MuiListItemAvatar)({
   display: "flex",
-  justifyContent: "center", 
+  justifyContent: "center",
   alignItems: "center",
 });
 
@@ -43,7 +43,7 @@ export default function SelectContent({ open }) {
         [`& .MuiSelect-select`]: {
           display: "flex",
           alignItems: "center",
-          justifyContent: "center", 
+          justifyContent: "center",
           gap: "2px",
           pl: 1,
         },

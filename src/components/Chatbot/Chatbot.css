@@ -21,11 +21,12 @@
 }
 
 .chatbot-toggle {
-  background-color: #296187;
+  background-color: #3e66a3;
   color: white;
   padding: 10px;
   text-align: center;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .chatbot-header {
@@ -46,6 +47,7 @@
 
 .chatbot-messages {
   flex-grow: 1;
+  margin: 5px;
   padding: 10px;
   overflow-y: auto;
   background-color: #1e1e1e;
@@ -57,7 +59,7 @@
   text-align: right;
   margin: 5px;
   padding: 10px;
-  background-color: #296187;
+  background-color: #3e66a3;
   color: white;
   border-radius: 15px 15px 0 15px;
   margin-bottom: 15px;
@@ -95,7 +97,7 @@
   display: block;
   margin: 10px auto;
   padding: 10px 20px;
-  background-color: #296187;
+  background-color: #3e66a3;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -107,9 +109,9 @@
 }
 
 .chatbot-send-btn:hover {
-  background-color: #2980b9;
+  background-color: #304b74;
 }
 
 .chatbot-toggle:hover {
-  background-color: #2980b9;
+  background-color: #304b74;
 }

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { ref, update, get, query, orderByChild, equalTo } from "firebase/database";
+import {
+  ref,
+  update,
+  get,
+  query,
+  orderByChild,
+  equalTo,
+} from "firebase/database";
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 
@@ -11,22 +18,26 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
     const userId = auth.currentUser?.uid;
     if (!userId) return; // Only freelancers can accept jobs
 
-    
-    let data = {}
-    const businessRef = ref (db, "businesses")
-    const userBusiness = query (businessRef, orderByChild ("owner"), equalTo(employerId))
+    let data = {};
+    const businessRef = ref(db, "businesses");
+    const userBusiness = query(
+      businessRef,
+      orderByChild("owner"),
+      equalTo(employerId)
+    );
     try {
-    const snapshot = await get (userBusiness) 
-    if (snapshot.exists())
-    data = snapshot.val()
-    console.log(data)
+      const snapshot = await get(userBusiness);
+      if (snapshot.exists()) data = snapshot.val();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
     }
-    catch (error){console.log(error)}
-    console.log(data)
-    const business = Object.entries (data).map(([key, value]) => ({
-      id: key, ... value
-    }))
-    console.log(business)
+    console.log(data);
+    const business = Object.entries(data).map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+    console.log(business);
     const jobRef = ref(db, `businesses/${business[0].id}/jobs/active/${jobId}`);
     const freelancerRef = ref(db, `users/${userId}/linkedEmployers`);
 
@@ -55,9 +66,8 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
       console.error("Error accepting job:", error.message);
       alert("Error accepting job. Please try again.");
     }
-    
   };
-  console.log (jobs)
+  console.log(jobs);
   return (
     <div>
       <h1>Available Jobs</h1>
@@ -71,10 +81,7 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
               <p>Deadline: {job.deadline}</p>
               <p>Status: {job.status}</p>
               {job.status === "open" && (
-                <button
-                  onClick={() => handleAcceptJob(job.id, job.employerId)}
-                  className="accept-btn"
-                >
+                <button onClick={() => handleAcceptJob(job.id, job.employerId)}>
                   Accept Job
                 </button>
               )}

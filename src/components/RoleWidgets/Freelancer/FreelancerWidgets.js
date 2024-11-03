@@ -134,13 +134,13 @@ export const FreelancerWidgets = () => {
     return entries.filter((entry) => {
       const entryDate = new Date(entry.date);
       if (totalIncomeView === "weekly") {
-        return entryDate >= new Date(now.setDate(now.getDate() - 7));
+        return entryDate >= new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
       } else if (totalIncomeView === "monthly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
+        return entryDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
       } else if (totalIncomeView === "quarterly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
+        return entryDate >= new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
       } else if (totalIncomeView === "annually") {
-        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
+        return entryDate >= new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
       }
       return true;
     });

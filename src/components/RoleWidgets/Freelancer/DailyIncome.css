@@ -37,9 +37,10 @@ input {
   border-radius: 5px;
   font-size: 1rem;
   cursor: pointer;
-  background-color: #295442; 
+  background-color: #295442;
   color: white;
   transition: background-color 0.3s ease;
+  margin-top: 15px;
 }
 
 .submit-btn:hover {

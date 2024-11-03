@@ -31,7 +31,7 @@
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
-  text-align: center; /* Center content inside the card */
+  text-align: center; 
 }
 
 .freelancer-card:hover {
@@ -43,22 +43,6 @@
   font-size: 1em;
   color: #d4d4d4;
   margin-bottom: 20px;
-}
-
-/* View Details button */
-.view-details-btn {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #296187;
-  color: #fff;
-  border-radius: 5px;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
-}
-
-.view-details-btn:hover {
-  background-color: #2980b9;
 }
 
 /* Responsive adjustments */

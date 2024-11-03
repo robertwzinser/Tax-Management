@@ -13,11 +13,7 @@ const StyledContainer = styled(Container)(({ theme }) => ({
 const AboutPage = () => {
   return (
     <StyledContainer sx={{ mt: 8 }}>
-      <Typography
-        variant="h4"
-        component="h1"
-        sx={{ fontWeight: "bold" }}
-      >
+      <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
         About Us
       </Typography>
       <Typography variant="body1" sx={{ mt: 2 }}>

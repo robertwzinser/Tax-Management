@@ -5,8 +5,8 @@
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  background-color: #2a2a3b; /* Dark background */
-  color: #f0f0f0; /* Light text color */
+  background-color: #1b1b1b;
+  color: #f0f0f0;
   font-family: Arial, sans-serif;
 }
 
@@ -30,13 +30,15 @@
 }
 
 /* Input and select fields */
-input[type="file"], input[type="text"], input[type="number"], select {
+input[type="file"],
+input[type="text"],
+input[type="number"],
+select {
   width: 100%;
   padding: 10px;
   margin-top: 5px;
   border-radius: 4px;
   border: 1px solid #444;
-  background-color: #1e1e2f; /* Dark input background */
   color: #f0f0f0;
 }
 
@@ -58,11 +60,12 @@ input[type="file"], input[type="text"], input[type="number"], select {
 }
 
 /* Buttons */
-.upload-button, .document-list button {
+.upload-button,
+.document-list button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -70,7 +73,8 @@ input[type="file"], input[type="text"], input[type="number"], select {
   cursor: pointer;
 }
 
-.upload-button:hover, .document-list button:hover {
+.upload-button:hover,
+.document-list button:hover {
   background-color: #45a049;
 }
 
@@ -85,11 +89,11 @@ input[type="file"], input[type="text"], input[type="number"], select {
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 8px;
-  background-color: #333444; /* Slightly lighter background for document items */
+  background-color: #161616;
 }
 
 .document-list a {
-  color: #4CAF50;
+  color: #4caf50;
   text-decoration: none;
   font-weight: bold;
 }
@@ -118,7 +122,7 @@ input[type="file"], input[type="text"], input[type="number"], select {
 
 .document-list button:nth-child(2) {
   margin-left: 4%;
-  background-color: #e74c3c; /* Red for delete button */
+  background-color: #e74c3c;
 }
 
 .document-list button:hover {

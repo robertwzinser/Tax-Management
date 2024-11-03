@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { ref, push, update } from "firebase/database"; // Firebase DB functions
+import {
+  ref,
+  push,
+  update,
+  query,
+  orderByChild,
+  equalTo,
+  get,
+} from "firebase/database"; // Firebase DB functions
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 
@@ -19,8 +27,27 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Only employers can post jobs.");
       return;
     }
-
-    const jobRef = ref(db, "jobs/");
+    let data = {};
+    const businessRef = ref(db, "businesses");
+    const userBusiness = query(
+      businessRef,
+      orderByChild("owner"),
+      equalTo(userId)
+    );
+    try {
+      const snapshot = await get(userBusiness);
+      if (snapshot.exists()) data = snapshot.val();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+    console.log(data);
+    const business = Object.entries(data).map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+    console.log(business);
+    const jobRef = ref(db, `businesses/${business[0].id}/jobs/active`);
     const newJobEntry = {
       ...newJob,
       employerId: userId,
@@ -39,9 +66,40 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
   };
 
   const handleEditJob = async (jobId) => {
-    const jobRef = ref(db, `jobs/${jobId}`);
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      alert("Only employers can post jobs.");
+      return;
+    }
+    let data = {};
+    const businessRef = ref(db, "businesses");
+    const userBusiness = query(
+      businessRef,
+      orderByChild("owner"),
+      equalTo(userId)
+    );
     try {
-      await update(jobRef, { ...newJob });
+      const snapshot = await get(userBusiness);
+      if (snapshot.exists()) data = snapshot.val();
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+    console.log(data);
+    const business = Object.entries(data).map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+    console.log(business);
+    const jobRef = ref(db, `businesses/${business[0].id}/jobs/active/${jobId}`);
+    const updates = Object.keys(newJob).reduce((change, key) => {
+      if (newJob[key] !== "") {
+        change[key] = newJob[key];
+      }
+      return change;
+    }, {});
+    try {
+      await update(jobRef, updates);
       alert("Job updated successfully!");
       setCurrentJobId(null);
     } catch (error) {
@@ -83,15 +141,13 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
           onChange={(e) => setNewJob({ ...newJob, deadline: e.target.value })}
           required
         />
-        <button type="submit" className="submit-btn">
-          Post Job
-        </button>
+        <button type="submit">Post Job</button>
       </form>
 
       <div className="job-list">
         {jobs.length > 0 ? (
-          jobs.map(([id, job]) => (
-            <div key={id} className="job-item">
+          jobs.map((job) => (
+            <div key={job.id} className="job-item">
               <h2>{job.title}</h2>
               <p>{job.description}</p>
               <p>Hourly Rate: ${job.payment}</p>
@@ -101,8 +157,10 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
               </p>
               {job.employerId === auth.currentUser?.uid && (
                 <>
-                  <button onClick={() => setCurrentJobId(id)}>Edit Job</button>
-                  {currentJobId === id && (
+                  <button onClick={() => setCurrentJobId(job.id)}>
+                    Edit Job
+                  </button>
+                  {currentJobId === job.id && (
                     <div>
                       <input
                         type="text"
@@ -119,7 +177,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
                           setNewJob({ ...newJob, description: e.target.value })
                         }
                       />
-                      <button onClick={() => handleEditJob(id)}>
+                      <button onClick={() => handleEditJob(job.id)}>
                         Save Changes
                       </button>
                     </div>

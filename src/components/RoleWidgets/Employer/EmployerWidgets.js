@@ -48,7 +48,7 @@ export const EmployerWidgets = () => {
               <p className="freelancer-email">{freelancer.email}</p>
               <Link
                 to={`/freelancer/${freelancer.id}`}
-                className="view-details-btn"
+                className="dashboard-btn"
               >
                 View Details
               </Link>

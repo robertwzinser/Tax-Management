@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { getDatabase, ref, push, set, serverTimestamp, onValue, update } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  push,
+  set,
+  serverTimestamp,
+  onValue,
+  update,
+} from "firebase/database";
 import { auth } from "../firebase";
 import "./Deductions.css";
 
@@ -21,18 +29,26 @@ const Deductions = () => {
         onValue(userDeductionRef, (snapshot) => {
           const fetchedDeductions = snapshot.val();
           if (fetchedDeductions) {
-            const deductionsArray = Object.entries(fetchedDeductions).map(([id, data]) => ({
-              id,
-              ...data,
-            }));
+            const deductionsArray = Object.entries(fetchedDeductions).map(
+              ([id, data]) => ({
+                id,
+                ...data,
+              })
+            );
             setUserDeductions(deductionsArray);
 
             // Calculate total and tax burden with all submitted deductions
-            const total = deductionsArray.reduce((acc, curr) => acc + (parseFloat(curr.totalDeductions) || 0), 0);
+            const total = deductionsArray.reduce(
+              (acc, curr) => acc + (parseFloat(curr.totalDeductions) || 0),
+              0
+            );
             setTotalDeductions(total);
 
             // Calculate the tax burden reduction based on the tax rate from the last submission
-            const latestTaxRate = deductionsArray.length > 0 ? deductionsArray[deductionsArray.length - 1].taxRate : 0;
+            const latestTaxRate =
+              deductionsArray.length > 0
+                ? deductionsArray[deductionsArray.length - 1].taxRate
+                : 0;
             const taxRateParsed = parseFloat(latestTaxRate) || 0;
             setTaxBurdenReduction(total * (taxRateParsed / 100));
           }
@@ -48,7 +64,7 @@ const Deductions = () => {
     const { name, value } = e.target;
     setDeduction((prev) => ({
       ...prev,
-      [name]: name === "amount" ? (parseFloat(value) || 0) : value,
+      [name]: name === "amount" ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -74,7 +90,13 @@ const Deductions = () => {
             taxRate, // Store the tax rate for each deduction
             timestamp: serverTimestamp(),
           };
-          await update(ref(db, `deductionCollection/${user.uid}/${userDeductions[editingIndex].id}`), updatedDeduction);
+          await update(
+            ref(
+              db,
+              `deductionCollection/${user.uid}/${userDeductions[editingIndex].id}`
+            ),
+            updatedDeduction
+          );
           setEditingIndex(null); // Reset after editing
         } else {
           await set(newDeduction, {
@@ -158,7 +180,9 @@ const Deductions = () => {
             {userDeductions.map((ded, index) => (
               <li key={ded.id}>
                 <div>
-                  <strong>Category:</strong> {ded.deductions[0].category} | <strong>Amount:</strong> ${ded.deductions[0].amount} | <strong>Tax Rate:</strong> {ded.taxRate}%
+                  <strong>Category:</strong> {ded.deductions[0].category} |{" "}
+                  <strong>Amount:</strong> ${ded.deductions[0].amount} |{" "}
+                  <strong>Tax Rate:</strong> {ded.taxRate}%
                 </div>
                 <button onClick={() => editDeduction(index)}>Edit</button>
               </li>

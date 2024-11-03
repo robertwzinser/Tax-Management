@@ -87,8 +87,10 @@ const FreelancerDetail = () => {
 
         setExpenses(freelancerExpenses);
         const total = freelancerExpenses
-          .filter((expense) => expense.accepted !== false)
+
+          .filter((expense) => expense.accepted !== false) // Exclude rejected expenses
           .reduce((sum, expense) => sum + parseFloat(expense.expense), 0);
+
         setTotalExpenses(total);
       } else {
         setExpenses([]);
@@ -322,8 +324,15 @@ const FreelancerDetail = () => {
           </Box>
 
           <Box sx={{ mt: 4 }}>
-            <Button variant="contained" color="primary" component={Link} to={`/add-income/${freelancerId}`}>
-              Add Income
+
+            <Button
+              class="add-income-button"
+              variant="contained"
+              color="primary"
+              component={Link}
+              to={`/add-income/${freelancerId}`}
+            >
+              Add Income for This Employee
             </Button>
           </Box>
         </>

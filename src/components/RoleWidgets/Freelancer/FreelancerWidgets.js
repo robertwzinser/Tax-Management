@@ -3,21 +3,22 @@ import { ref, onValue } from "firebase/database";
 import { auth, db } from "../../../firebase";
 import { Link } from "react-router-dom";
 import Chart from "chart.js/auto";
-import "./FreelancerWidgets.css"; // Assuming you're importing your CSS
+import { Tooltip, OverlayTrigger } from "react-bootstrap";
+import "./FreelancerWidgets.css";
 
 export const FreelancerWidgets = () => {
   const [employers, setEmployers] = useState([]);
-  const [selectedEmployer, setSelectedEmployer] = useState("");
+  const [selectedEmployer, setSelectedEmployer] = useState("all");
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState("");
   const [incomeData, setIncomeData] = useState([]);
-  const chartRef = useRef(null); // Ref for the canvas
+  const [totalIncomeView, setTotalIncomeView] = useState("weekly");
+  const chartRef = useRef(null);
   const [chartInstance, setChartInstance] = useState(null);
 
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
-      // Fetch linked employers for the logged-in freelancer
       const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
       onValue(linkedEmployersRef, (snapshot) => {
         const data = snapshot.val();
@@ -25,77 +26,94 @@ export const FreelancerWidgets = () => {
           const employersData = Object.entries(data).map(([id, employer]) => ({
             id,
             businessName: employer.name,
-            incomeEntries: employer.incomeEntries || {}, // Save income entries for later
+            incomeEntries: employer.incomeEntries || {},
           }));
           setEmployers(employersData);
+          // Automatically load data for "All Employers" on page load
+          fetchAllEmployersData(employersData);
         }
       });
     }
   }, []);
 
-  // Fetch jobs under selected employer that the freelancer works for
+  // Fetch income data for "All Employers" on initial load
+  const fetchAllEmployersData = (employersData) => {
+    const allIncomeEntries = employersData.flatMap((employer) =>
+      Object.values(employer.incomeEntries || {})
+    );
+    setIncomeData(
+      allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+    );
+  };
+
   const handleEmployerChange = (e) => {
     const employerId = e.target.value;
     setSelectedEmployer(employerId);
-    setSelectedJob(""); // Reset job selection when employer changes
+    setSelectedJob("");
 
-    if (employerId === "") {
-      // Reset when no employer is selected
-      setJobs([]);
-      setIncomeData([]);
-      return;
-    }
+    if (employerId === "all") {
+      fetchAllEmployersData(employers);
+    } else {
+      const userId = auth.currentUser?.uid;
+      if (userId) {
+        const jobsRef = ref(db, "jobs");
+        onValue(jobsRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const filteredJobs = Object.entries(data)
+              .filter(
+                ([jobId, job]) =>
+                  job.employerId === employerId && job.freelancerId === userId
+              )
+              .map(([jobId, job]) => ({
+                jobId,
+                title: job.title,
+              }));
+            setJobs(filteredJobs);
+          }
+        });
 
-    const userId = auth.currentUser?.uid;
-    if (userId) {
-      const jobsRef = ref(db, "jobs");
-      onValue(jobsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          // Filter jobs where freelancerId matches the logged-in user
-          const filteredJobs = Object.entries(data)
-            .filter(
-              ([jobId, job]) =>
-                job.employerId === employerId && job.freelancerId === userId
-            )
-            .map(([jobId, job]) => ({
-              jobId,
-              title: job.title,
-            }));
-          setJobs(filteredJobs);
-        }
-      });
-
-      // Fetch income data for the selected employer
-      const selectedEmployerData = employers.find(
-        (emp) => emp.id === employerId
-      );
-      const allIncomeEntries = Object.values(
-        selectedEmployerData.incomeEntries || {}
-      );
-      setIncomeData(allIncomeEntries);
+        const selectedEmployerData = employers.find(
+          (emp) => emp.id === employerId
+        );
+        const allIncomeEntries = Object.values(
+          selectedEmployerData.incomeEntries || {}
+        );
+        setIncomeData(
+          allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+        );
+      }
     }
   };
 
-  // Fetch income data for selected job
   const handleJobChange = (e) => {
     const jobId = e.target.value;
     setSelectedJob(jobId);
 
-    if (jobId) {
+    if (selectedEmployer === "all") {
+      const allIncomeEntries = employers.flatMap((employer) =>
+        Object.values(employer.incomeEntries || {})
+      );
+      setIncomeData(
+        allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+      );
+    } else if (jobId) {
       const selectedEmployerData = employers.find(
         (emp) => emp.id === selectedEmployer
       );
       const jobIncomeEntries = Object.values(
         selectedEmployerData.incomeEntries || {}
       ).filter((entry) => entry.jobId === jobId);
-      setIncomeData(jobIncomeEntries.length ? jobIncomeEntries : []); // Set empty if no data
+      setIncomeData(jobIncomeEntries.length ? jobIncomeEntries : []);
     } else {
-      // If no job selected, show combined data for all jobs under employer
       const selectedEmployerData = employers.find(
         (emp) => emp.id === selectedEmployer
       );
-      setIncomeData(Object.values(selectedEmployerData.incomeEntries || {}));
+      setIncomeData(
+        Object.values(selectedEmployerData.incomeEntries || {}).sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        )
+      );
     }
   };
 
@@ -121,16 +139,32 @@ export const FreelancerWidgets = () => {
     );
   };
 
+  const filterIncomeByRange = (entries) => {
+    const now = new Date();
+    return entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      if (totalIncomeView === "weekly") {
+        return entryDate >= new Date(now.setDate(now.getDate() - 7));
+      } else if (totalIncomeView === "monthly") {
+        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
+      } else if (totalIncomeView === "quarterly") {
+        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
+      } else if (totalIncomeView === "annually") {
+        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
+      }
+      return true;
+    });
+  };
+
   const createIncomeChart = () => {
-    // Destroy the existing chart if it exists
     if (chartInstance) {
       chartInstance.destroy();
     }
 
-    // Only create chart if income data exists
     const ctx = chartRef.current;
     if (incomeData.length > 0) {
-      const aggregatedData = aggregateIncomeByDate(incomeData);
+      const filteredData = filterIncomeByRange(incomeData);
+      const aggregatedData = aggregateIncomeByDate(filteredData);
       const chartData = {
         labels: aggregatedData.map((entry) => entry.date),
         datasets: [
@@ -140,6 +174,7 @@ export const FreelancerWidgets = () => {
             backgroundColor: "rgba(75, 192, 192, 0.2)",
             borderColor: "rgba(75, 192, 192, 1)",
             borderWidth: 1,
+            tension: 0.4,
           },
         ],
       };
@@ -149,6 +184,15 @@ export const FreelancerWidgets = () => {
         data: chartData,
         options: {
           responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `Income: $${context.raw}`;
+                },
+              },
+            },
+          },
           scales: {
             y: {
               beginAtZero: true,
@@ -165,17 +209,23 @@ export const FreelancerWidgets = () => {
     if (incomeData.length > 0) {
       createIncomeChart();
     } else if (chartInstance) {
-      chartInstance.destroy(); // Destroy chart when there's no data
+      chartInstance.destroy();
     }
-  }, [incomeData]);
+  }, [incomeData, totalIncomeView]);
 
   const totalIncome =
     incomeData.length > 0
-      ? incomeData.reduce((acc, curr) => acc + curr.amount, 0)
+      ? filterIncomeByRange(incomeData).reduce(
+          (acc, curr) => acc + curr.amount,
+          0
+        )
       : "N/A";
   const estimatedTaxes =
     incomeData.length > 0
-      ? incomeData.reduce((acc, curr) => acc + curr.estimatedTax, 0)
+      ? filterIncomeByRange(incomeData).reduce(
+          (acc, curr) => acc + curr.estimatedTax,
+          0
+        )
       : "N/A";
 
   return (
@@ -187,7 +237,7 @@ export const FreelancerWidgets = () => {
           value={selectedEmployer}
           className="custom-select"
         >
-          <option value="">-- Select an Employer --</option>
+          <option value="all">All Employers</option>
           {employers.map((employer) => (
             <option key={employer.id} value={employer.id}>
               {employer.businessName}
@@ -195,7 +245,7 @@ export const FreelancerWidgets = () => {
           ))}
         </select>
 
-        {selectedEmployer && (
+        {selectedEmployer !== "all" && (
           <div className="select-job">
             <h3>Select Job</h3>
             <select
@@ -215,14 +265,7 @@ export const FreelancerWidgets = () => {
       </div>
 
       <div className="card income-summary">
-        <h2>
-          Income Summary{" "}
-          {selectedJob
-            ? `for ${jobs.find((j) => j.jobId === selectedJob)?.title}`
-            : `for All Jobs under ${
-                employers.find((e) => e.id === selectedEmployer)?.businessName
-              }`}
-        </h2>
+        <h2>Income Summary</h2>
         <div className="summary-info">
           <div className="summary-item">
             <h3>Total Income</h3>
@@ -231,6 +274,19 @@ export const FreelancerWidgets = () => {
           <div className="summary-item">
             <h3>Estimated Taxes</h3>
             <p style={{ color: "#e74c3c" }}>${estimatedTaxes}</p>
+          </div>
+          <div>
+            <label>View Range:</label>
+            <select
+              onChange={(e) => setTotalIncomeView(e.target.value)}
+              value={totalIncomeView}
+              className="custom-select"
+            >
+              <option value="weekly">This Week</option>
+              <option value="monthly">This Month</option>
+              <option value="quarterly">This Quarter</option>
+              <option value="annually">This Year</option>
+            </select>
           </div>
         </div>
       </div>

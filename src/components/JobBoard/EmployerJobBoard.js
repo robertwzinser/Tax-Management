@@ -40,8 +40,14 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
 
   const handleEditJob = async (jobId) => {
     const jobRef = ref(db, `jobs/${jobId}`);
+    const updates = Object.keys(newJob).reduce((change, key) => {
+      if (newJob[key] !== "") {
+        change[key] = newJob[key];
+      }
+      return change;
+    }, {});
     try {
-      await update(jobRef, { ...newJob });
+      await update(jobRef, updates);
       alert("Job updated successfully!");
       setCurrentJobId(null);
     } catch (error) {

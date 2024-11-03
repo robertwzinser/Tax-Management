@@ -12,7 +12,7 @@ export const FreelancerWidgets = () => {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState("");
   const [incomeData, setIncomeData] = useState([]);
-  const [totalIncomeView, setTotalIncomeView] = useState("monthly");
+  const [totalIncomeView, setTotalIncomeView] = useState("weekly");
   const chartRef = useRef(null);
   const [chartInstance, setChartInstance] = useState(null);
 
@@ -29,10 +29,22 @@ export const FreelancerWidgets = () => {
             incomeEntries: employer.incomeEntries || {},
           }));
           setEmployers(employersData);
+          // Automatically load data for "All Employers" on page load
+          fetchAllEmployersData(employersData);
         }
       });
     }
   }, []);
+
+  // Fetch income data for "All Employers" on initial load
+  const fetchAllEmployersData = (employersData) => {
+    const allIncomeEntries = employersData.flatMap((employer) =>
+      Object.values(employer.incomeEntries || {})
+    );
+    setIncomeData(
+      allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+    );
+  };
 
   const handleEmployerChange = (e) => {
     const employerId = e.target.value;
@@ -40,12 +52,7 @@ export const FreelancerWidgets = () => {
     setSelectedJob("");
 
     if (employerId === "all") {
-      // Combine income entries from all employers
-      const allIncomeEntries = employers.flatMap((employer) =>
-        Object.values(employer.incomeEntries || {})
-      );
-      setJobs([]); // No jobs to display for "All Employers"
-      setIncomeData(allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+      fetchAllEmployersData(employers);
     } else {
       const userId = auth.currentUser?.uid;
       if (userId) {
@@ -72,7 +79,9 @@ export const FreelancerWidgets = () => {
         const allIncomeEntries = Object.values(
           selectedEmployerData.incomeEntries || {}
         );
-        setIncomeData(allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+        setIncomeData(
+          allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+        );
       }
     }
   };
@@ -82,11 +91,12 @@ export const FreelancerWidgets = () => {
     setSelectedJob(jobId);
 
     if (selectedEmployer === "all") {
-      // If "All Employers" is selected, ignore job selection
       const allIncomeEntries = employers.flatMap((employer) =>
         Object.values(employer.incomeEntries || {})
       );
-      setIncomeData(allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date)));
+      setIncomeData(
+        allIncomeEntries.sort((a, b) => new Date(a.date) - new Date(b.date))
+      );
     } else if (jobId) {
       const selectedEmployerData = employers.find(
         (emp) => emp.id === selectedEmployer
@@ -205,19 +215,29 @@ export const FreelancerWidgets = () => {
 
   const totalIncome =
     incomeData.length > 0
-      ? filterIncomeByRange(incomeData).reduce((acc, curr) => acc + curr.amount, 0)
+      ? filterIncomeByRange(incomeData).reduce(
+          (acc, curr) => acc + curr.amount,
+          0
+        )
       : "N/A";
   const estimatedTaxes =
     incomeData.length > 0
-      ? filterIncomeByRange(incomeData).reduce((acc, curr) => acc + curr.estimatedTax, 0)
+      ? filterIncomeByRange(incomeData).reduce(
+          (acc, curr) => acc + curr.estimatedTax,
+          0
+        )
       : "N/A";
 
   return (
     <div className="freelancer-widgets">
       <div className="card">
         <h2>Select Employer</h2>
-        <select onChange={handleEmployerChange} value={selectedEmployer} className="custom-select">
-          <option value="all">-- All Employers --</option>
+        <select
+          onChange={handleEmployerChange}
+          value={selectedEmployer}
+          className="custom-select"
+        >
+          <option value="all">All Employers</option>
           {employers.map((employer) => (
             <option key={employer.id} value={employer.id}>
               {employer.businessName}
@@ -228,7 +248,11 @@ export const FreelancerWidgets = () => {
         {selectedEmployer !== "all" && (
           <div className="select-job">
             <h3>Select Job</h3>
-            <select onChange={handleJobChange} value={selectedJob} className="custom-select">
+            <select
+              onChange={handleJobChange}
+              value={selectedJob}
+              className="custom-select"
+            >
               <option value="">All Jobs</option>
               {jobs.map((job) => (
                 <option key={job.jobId} value={job.jobId}>
@@ -258,10 +282,10 @@ export const FreelancerWidgets = () => {
               value={totalIncomeView}
               className="custom-select"
             >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="annually">Annually</option>
+              <option value="weekly">This Week</option>
+              <option value="monthly">This Month</option>
+              <option value="quarterly">This Quarter</option>
+              <option value="annually">This Year</option>
             </select>
           </div>
         </div>
@@ -269,7 +293,11 @@ export const FreelancerWidgets = () => {
 
       <div className="card">
         <h2>Income Over Time</h2>
-        {incomeData.length > 0 ? <canvas ref={chartRef}></canvas> : <p>No data available</p>}
+        {incomeData.length > 0 ? (
+          <canvas ref={chartRef}></canvas>
+        ) : (
+          <p>No data available</p>
+        )}
       </div>
 
       <div className="card">

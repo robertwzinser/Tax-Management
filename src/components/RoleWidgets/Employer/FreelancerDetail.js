@@ -88,7 +88,7 @@ const FreelancerDetail = () => {
         setExpenses(freelancerExpenses);
         const total = freelancerExpenses
 
-          .filter((expense) => expense.accepted !== false) // Exclude rejected expenses
+          .filter((expense) => expense.accepted !== false)
           .reduce((sum, expense) => sum + parseFloat(expense.expense), 0);
 
         setTotalExpenses(total);
@@ -243,10 +243,10 @@ const FreelancerDetail = () => {
                   },
                 }}
               >
-                <MenuItem value="weekly">Weekly</MenuItem>
-                <MenuItem value="monthly">Monthly</MenuItem>
-                <MenuItem value="quarterly">Quarterly</MenuItem>
-                <MenuItem value="annually">Annually</MenuItem>
+                <MenuItem value="weekly">This Week</MenuItem>
+                <MenuItem value="monthly">This Month</MenuItem>
+                <MenuItem value="quarterly">This Quarter</MenuItem>
+                <MenuItem value="annually">This Year</MenuItem>
               </Select>
               <Typography variant="h6">
                 Total Income: ${calculateOverallIncome().toFixed(2)}

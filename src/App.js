@@ -30,6 +30,7 @@ import AddIncomeForm from "./components/RoleWidgets/Employer/AddIncomeForm";
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -48,6 +49,9 @@ const App = () => {
     return <div></div>; // Loading state
   }
 
+  const handleSelectedMessagingUser = (user) => {
+      setSelectedUser(user)
+  }
   return (
     <Router>
       {isLoggedIn && <GlobalNotification />}{" "}

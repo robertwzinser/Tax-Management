@@ -1,25 +1,44 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import GlobalNotification from "../../components/Notifications/GlobalNotification";
 import { getDatabase, ref, remove, child, get } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import "./Navbar.css";
 import "../Notifications/Notifications.css";
+import JobNotifications from "../Notifications/JobNotifications";
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-
+  const navigate = useNavigate ()
   const auth = getAuth();
   const db = getDatabase();
 
   const [userRole, setUserRole] = useState("");
+  const userRoleRef = useRef()
   const [loading, setLoading] = useState(true);
 
+  const updateShouldJobShowNotifications = () => {
+    if (userRoleRef.current == undefined) {
+      console.log("undefined user detected")
+      return
+    } else if(userRoleRef.current && userRoleRef.current.toLowerCase() == "freelancer") {
+      setShowNotifications(true)
+ 
+    } else {
+      const filteredNotifications = notifications.filter((notif) => (notif.type == undefined))
+      setShowNotifications(false)
+      setNotifications(filteredNotifications)
+      
+      
+    }
+  }
   // Update notifications state when GlobalNotification fetches new data
   const handleNotificationsUpdate = (newNotifications) => {
+    debugger
     setNotifications(newNotifications);
+    updateShouldJobShowNotifications()
   };
 
   // Dismiss a notification
@@ -48,10 +67,12 @@ const Navbar = () => {
         const snapshot = await get(child(dbRef, `users/${userId}`));
         if (snapshot.exists()) {
           const data = snapshot.val();
+          userRoleRef.current = data.role
           setUserRole(data.role);
         } else {
           console.log("No user data available");
         }
+        updateShouldJobShowNotifications()
       } catch (error) {
         console.error("Error fetching user role: ", error);
       } finally {
@@ -63,12 +84,52 @@ const Navbar = () => {
       if (user) {
         fetchUserRole(user.uid);
       } else {
+        userRoleRef.current = ""
         setUserRole("");
         setLoading(false);
       }
     });
   }, []);
 
+  const generateNotification = (notif) => {
+
+
+    if (notif.type == "job") {
+      return  <>
+              <div key={notif.id} onClick= {()=>navigate("/job-board")} className="notification-job-item">
+              <div><strong> New Job</strong></div>
+                <div>title: {notif.title}</div>
+                <div>description: {notif.description}</div>
+                <div>pay: {notif.pay}</div>
+                <div>start-date: {notif.startDate}</div>
+                <button
+                  onClick={() => dismissNotification(notif.id)}
+                  className="dismiss-job-notif-btn"
+                >
+                  x
+                </button>
+              </div>
+            </>
+    } else {
+      return <>
+              <div key={notif.id}onClick={() => navigate("/inbox")} className="notification-item">
+                <span>{notif.message}</span>
+                <span className="timestamp">
+                  {formatTimestamp(notif.timestamp)}
+                </span>
+                <button
+                  onClick={() => dismissNotification(notif.id)}
+                  className="dismiss-btn"
+                >
+                  x
+                </button>
+              </div>
+            </>
+    }
+     
+    
+  }
+   
   return (
     <nav className="navbar">
       <div className="left-buttons">
@@ -93,7 +154,7 @@ const Navbar = () => {
             className="notifications-btn"
             onClick={(e) => {
               e.preventDefault();
-              setShowNotifications(!showNotifications);
+              setShowNotifications(showNotifications);
             }}
           >
             <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
@@ -108,18 +169,7 @@ const Navbar = () => {
           >
             {notifications.length > 0 ? (
               notifications.map((notif) => (
-                <div key={notif.id} className="notification-item">
-                  <span>{notif.message}</span>
-                  <span className="timestamp">
-                    {formatTimestamp(notif.timestamp)}
-                  </span>
-                  <button
-                    onClick={() => dismissNotification(notif.id)}
-                    className="dismiss-btn"
-                  >
-                    X
-                  </button>
-                </div>
+                generateNotification(notif) 
               ))
             ) : (
               <div className="no-notifications">No notifications</div>
@@ -130,6 +180,7 @@ const Navbar = () => {
 
       {/* GlobalNotification component to manage notifications */}
       <GlobalNotification onNotificationsUpdate={handleNotificationsUpdate} />
+      <JobNotifications onNotificationsUpdate={handleNotificationsUpdate} />
     </nav>
   );
 };

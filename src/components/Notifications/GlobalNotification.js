@@ -9,12 +9,13 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
 
   useEffect(() => {
     if (!userId) return;
-
+  
     const notificationsRef = ref(db, `notifications/${userId}`);
-
+    
     // Attach listener to fetch notifications
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val();
+      console.log(data)
       const notificationsList = data
         ? Object.entries(data).map(([id, notification]) => ({
             id,
@@ -47,3 +48,4 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
 };
 
 export default GlobalNotification;
+

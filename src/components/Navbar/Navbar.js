@@ -14,19 +14,27 @@ const Navbar = () => {
   const navigate = useNavigate ()
   const auth = getAuth();
   const db = getDatabase();
-
+  console.log(notifications)
   const [userRole, setUserRole] = useState("");
   const userRoleRef = useRef()
   const [loading, setLoading] = useState(true);
 
   const updateShouldJobShowNotifications = () => {
+    console.log(userRoleRef.current)
     if (userRoleRef.current == undefined) {
+      
       console.log("undefined user detected")
       return
     } else if(userRoleRef.current && userRoleRef.current.toLowerCase() == "freelancer") {
       setShowNotifications(true)
- 
-    } else {
+    
+    } 
+    else if(userRoleRef.current &&  userRoleRef.current.toLowerCase() =="employer") {
+     // const filteredNotifications = notifications.filter((notif) => (notif.type !== "job"))
+      setShowNotifications(true)
+     // setNotifications(filteredNotifications)
+    }
+    else {
       const filteredNotifications = notifications.filter((notif) => (notif.type == undefined))
       setShowNotifications(false)
       setNotifications(filteredNotifications)
@@ -36,7 +44,7 @@ const Navbar = () => {
   }
   // Update notifications state when GlobalNotification fetches new data
   const handleNotificationsUpdate = (newNotifications) => {
-    debugger
+    //debugger
     setNotifications(newNotifications);
     updateShouldJobShowNotifications()
   };
@@ -154,7 +162,7 @@ const Navbar = () => {
             className="notifications-btn"
             onClick={(e) => {
               e.preventDefault();
-              setShowNotifications(showNotifications);
+              setShowNotifications(!showNotifications);
             }}
           >
             <NotificationsRoundedIcon sx={{ fontSize: 24 }} />

@@ -84,6 +84,15 @@ const DailyIncome = () => {
       estimatedTax,
     };
 
+    if (
+      new Date(date) < new Date(selectedJob.startDate) ||
+      new Date(date) > new Date(selectedJob.endDate)
+    ) {
+      alert("Income entry date must be within the job's start and end date range.");
+      return;
+    }
+    
+
     // Store the income entry under the selected employer and job
     const incomeRef = ref(
       db,

@@ -20,28 +20,37 @@ const Navbar = () => {
   const [loading, setLoading] = useState(true);
 
   const updateShouldJobShowNotifications = () => {
-    console.log(userRoleRef.current)
-    if (userRoleRef.current == undefined) {
-      
-      console.log("undefined user detected")
-      return
-    } else if(userRoleRef.current && userRoleRef.current.toLowerCase() == "freelancer") {
-      setShowNotifications(true)
+    console.log(userRoleRef.current);
     
-    } 
-    else if(userRoleRef.current &&  userRoleRef.current.toLowerCase() =="employer") {
-     // const filteredNotifications = notifications.filter((notif) => (notif.type !== "job"))
-      setShowNotifications(true)
-     // setNotifications(filteredNotifications)
+    if (!userRoleRef.current) {
+      console.log("Undefined user detected");
+      setShowNotifications(false);
+      return;
     }
-    else {
-      const filteredNotifications = notifications.filter((notif) => (notif.type == undefined))
-      setShowNotifications(false)
-      setNotifications(filteredNotifications)
-      
-      
+    
+    if (userRoleRef.current.toLowerCase() === "freelancer") {
+      setShowNotifications(true); // Freelancers see all notifications
+    } else if (userRoleRef.current.toLowerCase() === "employer") {
+      setShowNotifications(true); // Employers see filtered notifications
+    } else {
+      setShowNotifications(false); // Hide notifications for other roles
     }
-  }
+  };
+  // Adjusted notification rendering function to apply filtering directly in JSX based on role
+  const renderNotifications = () => {
+    // Check if userRoleRef.current is defined before using toLowerCase
+    const displayNotifications = userRoleRef.current && userRoleRef.current.toLowerCase() === "employer"
+      ? notifications.filter((notif) => notif.type !== "job") // Exclude job notifications for employers
+      : notifications; // Show all notifications for freelancers or other roles
+  
+    // Display a message if there are no notifications to show
+    if (displayNotifications.length === 0) {
+      return <div className="no-notifications">No notifications</div>;
+    }
+  
+    // Render each notification
+    return displayNotifications.map((notif) => generateNotification(notif));
+  };
   // Update notifications state when GlobalNotification fetches new data
   const handleNotificationsUpdate = (newNotifications) => {
     //debugger
@@ -157,31 +166,23 @@ const Navbar = () => {
 
         {/* Notifications Dropdown */}
         <div className="dropdown">
-          <Link
-            to="#"
-            className="notifications-btn"
-            onClick={(e) => {
-              e.preventDefault();
-              setShowNotifications(!showNotifications);
-            }}
-          >
-            <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
-            {notifications.length > 0 && (
-              <span className="notification-count">{notifications.length}</span>
-            )}
-          </Link>
-          <div
-            className={`notifications-dropdown ${
-              showNotifications ? "show" : ""
-            }`}
-          >
-            {notifications.length > 0 ? (
-              notifications.map((notif) => (
-                generateNotification(notif) 
-              ))
-            ) : (
-              <div className="no-notifications">No notifications</div>
-            )}
+      <Link
+        to="#"
+        className="notifications-btn"
+        onClick={(e) => {
+          e.preventDefault();
+          setShowNotifications(!showNotifications);
+        }}
+      >
+        <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
+        {notifications.length > 0 && (
+          <span className="notification-count">{notifications.length}</span>
+        )}
+      </Link>
+      <div
+        className={`notifications-dropdown ${showNotifications ? "show" : ""}`}
+      >
+        {renderNotifications()}
           </div>
         </div>
       </div>

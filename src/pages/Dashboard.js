@@ -3,14 +3,13 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, onValue, equalTo, query, orderByChild } from "firebase/database";
 import "./Dashboard.css";
-// Import role-specific components
 import { EmployerWidgets } from "../components/RoleWidgets/Employer/EmployerWidgets";
 import { FreelancerWidgets } from "../components/RoleWidgets/Freelancer/FreelancerWidgets";
 
 const Dashboard = () => {
-  const [firstname, setFirstname] = useState("User"); // Default to "User"
+  const [firstname, setFirstname] = useState("User");
   const [taxData, setTaxData] = useState({});
-  const [businessName, setBusinessName] = useState(""); // New state for business name
+  const [businessName, setBusinessName] = useState("");
   const [incomeData, setIncomeData] = useState([]);
   const [expenseData, setExpenseData] = useState([]);
   const [userRole, setUserRole] = useState("");
@@ -27,11 +26,11 @@ const Dashboard = () => {
           const userData = snapshot.val();
           if (userData) {
             setUserRole(userData.role || "No role assigned");
-            setFirstname(userData.firstname || "User"); // Fetch firstname from Firebase
+            setFirstname(userData.firstname || "User");
             if (userData.role === "Employer") {
               setBusinessName(
                 userData.businessName || "Business Name Not Available"
-              ); // Fetch business name
+              );
             }
           }
         });
@@ -45,8 +44,9 @@ const Dashboard = () => {
         onValue(incomeRef, (snapshot) => {
           setIncomeData(snapshot.val() || []);
         });
+
         const fetchdata = async () => {
-          const fetchExpenses = async () => {
+          try {
             const expenseRef = ref(db, "expenseCollection");
             const q = query(
               expenseRef,
@@ -59,7 +59,6 @@ const Dashboard = () => {
               data = snapshot.val();
             });
 
-            // Check if data exists before calling Object.entries
             if (!data) {
               return []; // Return an empty array if there's no data
             }
@@ -69,21 +68,19 @@ const Dashboard = () => {
               ...value,
             }));
 
-            return expenseArray;
-          };
-
-          const data = await fetchExpenses();
-
-          const filterData = data.filter(
-            (expense) => expense.accepted === undefined
-          );
-          setExpenseData(filterData);
+            setExpenseData(
+              expenseArray.filter((expense) => expense.accepted === undefined)
+            );
+          } catch (error) {
+            console.error("Error fetching expenses:", error);
+          }
         };
+
         fetchdata();
         setLoading(false);
       } else {
         // User is signed out
-        setUserRole(""); // Reset role or
+        setUserRole("");
         setTaxData({});
         setIncomeData([]);
         setLoading(false);
@@ -94,8 +91,9 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <h2> loading </h2>;
+    return <h2>Loading...</h2>;
   }
+
   return (
     <div className="dashboard-container">
       <div>
@@ -116,3 +114,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

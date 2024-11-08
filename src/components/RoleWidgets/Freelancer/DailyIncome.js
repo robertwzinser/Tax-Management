@@ -6,16 +6,15 @@ import "./DailyIncome.css";
 
 const DailyIncome = () => {
   const [employers, setEmployers] = useState([]);
-  const [selectedClient, setSelectedClient] = useState(""); // Selected employer
-  const [jobs, setJobs] = useState([]); // Jobs linked to the selected employer
-  const [selectedJob, setSelectedJob] = useState(null); // Selected job
-  const [service, setService] = useState(""); // Service description
-  const [amount, setAmount] = useState(0); // Amount earned
-  const [date, setDate] = useState(""); // Date of service
-  const [estimatedTax, setEstimatedTax] = useState(0); // Estimated tax
+  const [selectedClient, setSelectedClient] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [service, setService] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [date, setDate] = useState("");
+  const [estimatedTax, setEstimatedTax] = useState(0);
   const navigate = useNavigate();
 
-  // Fetch linked employers from Firebase for the freelancer
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
@@ -33,7 +32,6 @@ const DailyIncome = () => {
     }
   }, []);
 
-  // Fetch jobs based on the selected employer, filtering by the freelancerId
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (selectedClient && userId) {
@@ -41,12 +39,14 @@ const DailyIncome = () => {
       onValue(jobsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          // Filter jobs by employerId and freelancerId (only show jobs for the logged-in freelancer)
-          const filteredJobs = Object.entries(data).filter(
-            ([, job]) =>
-              job.employerId === selectedClient && job.freelancerId === userId
-          );
-          setJobs(filteredJobs);
+          const filteredJobs = Object.entries(data).filter(([id, job]) => (
+            job.employerId === selectedClient &&
+            job.requests &&
+            Object.values(job.requests).some(
+              request => request.freelancerId === userId && request.status === "accepted"
+            )
+          ));
+          setJobs(filteredJobs.map(([id, job]) => ({ ...job, jobId: id })));
         }
       });
     } else {
@@ -54,13 +54,11 @@ const DailyIncome = () => {
     }
   }, [selectedClient]);
 
-  // Handle real-time tax calculation (e.g., 20% estimate)
   useEffect(() => {
     const taxRate = 0.2;
-    setEstimatedTax(amount * taxRate);
+    setEstimatedTax(parseFloat((amount * taxRate).toFixed(2))); // Calculate and round to 2 decimal places
   }, [amount]);
 
-  // Handle income submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const userId = auth.currentUser?.uid;
@@ -69,35 +67,25 @@ const DailyIncome = () => {
       return;
     }
 
-    // Validate inputs
     if (!selectedClient || !selectedJob || !service || !amount || !date) {
       alert("Please fill in all fields.");
       return;
     }
 
-    // Prepare the income entry
     const incomeEntry = {
-      jobId: selectedJob.jobId, // Update to include jobId
+      jobId: selectedJob.jobId,
       service,
-      amount: parseFloat(amount),
+      amount: parseFloat(amount), // Ensure amount is a float
       date,
-      estimatedTax,
+      estimatedTax: parseFloat(estimatedTax) // Ensure estimatedTax is a float
     };
 
-    if (
-      new Date(date) < new Date(selectedJob.startDate) ||
-      new Date(date) > new Date(selectedJob.endDate)
-    ) {
+    if (new Date(date) < new Date(selectedJob.startDate) || new Date(date) > new Date(selectedJob.endDate)) {
       alert("Income entry date must be within the job's start and end date range.");
       return;
     }
-    
 
-    // Store the income entry under the selected employer and job
-    const incomeRef = ref(
-      db,
-      `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`
-    );
+    const incomeRef = ref(db, `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`);
     try {
       await push(incomeRef, incomeEntry);
       alert("Daily income added successfully!");
@@ -138,13 +126,15 @@ const DailyIncome = () => {
               required
             >
               <option value="">-- Select a Job --</option>
-              {jobs.map(([id, job]) => (
+              {jobs.map((job) => (
                 <option
-                  key={id}
+                  key={job.jobId}
                   value={JSON.stringify({
-                    jobId: id,
+                    jobId: job.jobId,
                     employerId: job.employerId,
                     freelancerId: job.freelancerId,
+                    startDate: job.startDate,
+                    endDate: job.endDate,
                   })}
                 >
                   {job.title}

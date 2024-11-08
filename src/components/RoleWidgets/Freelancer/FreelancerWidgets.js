@@ -63,12 +63,18 @@ export const FreelancerWidgets = () => {
             const filteredJobs = Object.entries(data)
               .filter(
                 ([jobId, job]) =>
-                  job.employerId === employerId && job.freelancerId === userId
+                  job.employerId === employerId &&
+                  Object.values(job.requests || {}).some(
+                    (request) =>
+                      request.freelancerId === userId &&
+                      request.status === "accepted"
+                  )
               )
               .map(([jobId, job]) => ({
                 jobId,
                 title: job.title,
               }));
+
             setJobs(filteredJobs);
           }
         });
@@ -228,6 +234,10 @@ export const FreelancerWidgets = () => {
         )
       : "N/A";
 
+  const totalIncomeDisplay = totalIncome !== "N/A" ? `$${parseFloat(totalIncome).toFixed(2)}` : "N/A";
+  const estimatedTaxesDisplay = estimatedTaxes !== "N/A" ? `$${parseFloat(estimatedTaxes).toFixed(2)}` : "N/A";
+
+
   return (
     <div className="freelancer-widgets">
       <div className="card">
@@ -269,11 +279,11 @@ export const FreelancerWidgets = () => {
         <div className="summary-info">
           <div className="summary-item">
             <h3>Total Income</h3>
-            <p>${totalIncome}</p>
+            <p>{totalIncomeDisplay}</p>
           </div>
           <div className="summary-item">
             <h3>Estimated Taxes</h3>
-            <p style={{ color: "#e74c3c" }}>${estimatedTaxes}</p>
+            <p style={{ color: "#e74c3c" }}>{estimatedTaxesDisplay}</p>
           </div>
           <div>
             <label>View Range:</label>

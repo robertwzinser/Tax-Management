@@ -45,7 +45,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       // Fetch employer data for adding to freelancer's linkedEmployers
       const employerDataSnapshot = await get(ref(db, `users/${employerId}`));
       const employerData = employerDataSnapshot.val();
-      const employerName = `${employerData.firstname || ""} ${employerData.lastname || ""}`.trim() || employerData.name || "Unknown Employer";
+      const employerName = employerData.businessName || `${employerData.firstname || ""} ${employerData.lastname || ""}`.trim() || employerData.name || "Unknown Employer";
   
       // Update freelancer's linked employers list with the current employer's info
       const freelancerRef = ref(db, `users/${freelancerId}/linkedEmployers/${employerId}`);

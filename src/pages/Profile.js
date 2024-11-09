@@ -75,7 +75,7 @@ const Profile = () => {
     setIsEditing(false); // Exit edit mode
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div></div>;
 
   // Determine if the current user is viewing their own profile
   const isOwnProfile = auth.currentUser?.uid === uid;

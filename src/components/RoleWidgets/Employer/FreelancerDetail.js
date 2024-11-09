@@ -31,6 +31,7 @@ const FreelancerDetail = () => {
     onValue(freelancerRef, (snapshot) => {
       const data = snapshot.val();
       setFreelancer({
+        firstname: `${data.firstname}`,
         fullname: `${data.firstname} ${data.lastname}`,
         email: data.email,
       });
@@ -221,15 +222,14 @@ const FreelancerDetail = () => {
 
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5" component="h3">
-              Overall Income
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography variant="body2">View Range:</Typography>
+            {freelancer.firstname}'s Overall Income
               <Select
                 value={viewRange}
                 onChange={(e) => setViewRange(e.target.value)}
                 sx={{
+                  ml: 2,
                   mb: 2,
+                  mr: 2,
                   color: '#ffffff',
                   backgroundColor: '#333333',
                   '.MuiOutlinedInput-notchedOutline': {
@@ -256,8 +256,11 @@ const FreelancerDetail = () => {
                 <MenuItem value="quarterly">This Quarter</MenuItem>
                 <MenuItem value="annually">This Year</MenuItem>
               </Select>
-              <Typography variant="h6">
-                Total Income: ${calculateOverallIncome().toFixed(2)}
+              has been <strong>${calculateOverallIncome().toFixed(2)}</strong>.
+
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Typography>
               </Typography>
             </Box>
             <canvas id="freelancerIncomeChart"></canvas>

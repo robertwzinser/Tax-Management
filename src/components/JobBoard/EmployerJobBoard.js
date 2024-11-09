@@ -23,7 +23,9 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       const data = snapshot.val();
       if (data) {
         const requests = Object.entries(data).filter(
-          ([id, job]) => job.status === "requested" && job.employerId === auth.currentUser?.uid
+          ([id, job]) =>
+            job.status === "requested" &&
+            job.employerId === auth.currentUser?.uid
         );
         setJobRequests(requests);
       }
@@ -33,33 +35,55 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
   const handleAcceptRequest = async (jobId, freelancerId) => {
     const jobRef = ref(db, `jobs/${jobId}`);
     const employerId = auth.currentUser?.uid;
-  
+
     try {
       // Update job status to accepted
       await update(jobRef, { status: "accepted" });
-  
+
       // Update the specific request status to accepted under job requests
       const requestRef = ref(db, `jobs/${jobId}/requests/${freelancerId}`);
       await update(requestRef, { status: "accepted" });
-  
+
       // Fetch employer data for adding to freelancer's linkedEmployers
       const employerDataSnapshot = await get(ref(db, `users/${employerId}`));
       const employerData = employerDataSnapshot.val();
-      const employerName = employerData.businessName || `${employerData.firstname || ""} ${employerData.lastname || ""}`.trim() || employerData.name || "Unknown Employer";
-  
+      const employerName =
+        employerData.businessName ||
+        `${employerData.firstname || ""} ${
+          employerData.lastname || ""
+        }`.trim() ||
+        employerData.name ||
+        "Unknown Employer";
+
       // Update freelancer's linked employers list with the current employer's info
-      const freelancerRef = ref(db, `users/${freelancerId}/linkedEmployers/${employerId}`);
+      const freelancerRef = ref(
+        db,
+        `users/${freelancerId}/linkedEmployers/${employerId}`
+      );
       await update(freelancerRef, { name: employerName, status: "accepted" });
-  
+
       // Fetch freelancer data for adding to employer's acceptedFreelancers
-      const freelancerDataSnapshot = await get(ref(db, `users/${freelancerId}`));
+      const freelancerDataSnapshot = await get(
+        ref(db, `users/${freelancerId}`)
+      );
       const freelancerData = freelancerDataSnapshot.val();
-      const freelancerName = `${freelancerData.firstname || ""} ${freelancerData.lastname || ""}`.trim() || freelancerData.name || "Unknown Freelancer";
-  
+      const freelancerName =
+        `${freelancerData.firstname || ""} ${
+          freelancerData.lastname || ""
+        }`.trim() ||
+        freelancerData.name ||
+        "Unknown Freelancer";
+
       // Update employer's accepted freelancers list with the freelancer's info
-      const employerAcceptedFreelancersRef = ref(db, `users/${employerId}/acceptedFreelancers/${freelancerId}`);
-      await update(employerAcceptedFreelancersRef, { name: freelancerName, status: "accepted" });
-  
+      const employerAcceptedFreelancersRef = ref(
+        db,
+        `users/${employerId}/acceptedFreelancers/${freelancerId}`
+      );
+      await update(employerAcceptedFreelancersRef, {
+        name: freelancerName,
+        status: "accepted",
+      });
+
       alert("Job request accepted and relationship created.");
     } catch (error) {
       console.error("Error accepting request:", error);
@@ -77,28 +101,26 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Error declining job request. Please try again.");
     }
   };
-  
-  
 
   const handleJobPost = async (e) => {
     e.preventDefault();
-  
+
     // Get the current user ID
     const userId = auth.currentUser?.uid;
     if (!userId) {
       alert("Only employers can post jobs.");
       return;
     }
-  
+
     // Define references for jobs and user data
     const jobRef = ref(db, "jobs/");
     const userRef = ref(db, `users/${userId}`);
-  
+
     try {
       // Fetch employer data from Firebase
       const snapshot = await get(userRef);
       const employerData = snapshot.val();
-  
+
       // Prepare the job entry with additional employer data
       const newJobEntry = {
         ...newJob,
@@ -108,15 +130,21 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
         startDate: newJob.startDate,
         endDate: newJob.endDate,
         freelancerId: null,
-        status: "open"
+        status: "open",
       };
-  
+
       // Push the new job entry to Firebase
       await push(jobRef, newJobEntry);
       alert("Job posted successfully!");
-  
+
       // Reset the job form
-      setNewJob({ title: "", description: "", payment: "", startDate: "", endDate: "" });
+      setNewJob({
+        title: "",
+        description: "",
+        payment: "",
+        startDate: "",
+        endDate: "",
+      });
     } catch (error) {
       console.error("Error posting job:", error.message);
       alert("Error posting job. Please try again.");
@@ -147,7 +175,6 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
   const handleViewProfile = (freelancerId) => {
     navigate(`/profile/${freelancerId}`); // Navigates to the profile page using the UID
   };
-  
 
   return (
     <div>
@@ -196,49 +223,67 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
 
       <div className="job-list">
         {jobs.length > 0 ? (
-          jobs.map(([id, job]) => (
-            <div key={id} className="job-item">
-              <h2>{job.title}</h2>
-              <p>{job.description}</p>
-              <p>Hourly Rate: ${job.payment}</p>
-              <p>Starts: {job.startDate} and Ends: {job.endDate}</p>
-              <p className={`job-status ${job.status}`}>
-                Status: {job.status === "open" ? "Open for Requests" : "Accepted"}
-              </p>
+          jobs
+            .filter(
+              ([id, job]) =>
+                // new Date(job.endDate) >= new Date() &&
+                job.employerId === auth.currentUser?.uid
+            )
+            .map(([id, job]) => (
+              <div key={id} className="job-item">
+                <h2>{job.title}</h2>
+                <p>{job.description}</p>
+                <p>Hourly Rate: ${job.payment}</p>
+                <p>
+                  Starts: {job.startDate} and Ends: {job.endDate}
+                </p>
+                <p className={`job-status ${job.status}`}>
+                  Status:{" "}
+                  {job.status === "open" ? "Open for Requests" : "Accepted"}
+                </p>
 
-              {/* Job Requests Section */}
-              {job.requests && (
-                <div className="job-requests">
-                  <h3>Job Requests</h3>
-                  {Object.entries(job.requests).map(([freelancerId, request]) => (
-                    <div key={freelancerId} className="request-item">
-                      <p>Requested by: {request.freelancerName}</p>
-                      <p>Request Status: {request.status}</p>
-                      <button onClick={() => handleViewProfile(freelancerId)}>
-                        View Profile
-                      </button>
-                      {request.status === "requested" && job.status === "open" && (
-                        <>
+                {/* Job Requests Section */}
+                {job.requests && (
+                  <div className="job-requests">
+                    <h3>Job Requests</h3>
+                    {Object.entries(job.requests).map(
+                      ([freelancerId, request]) => (
+                        <div key={freelancerId} className="request-item">
+                          <p>Requested by: {request.freelancerName}</p>
+                          <p>Request Status: {request.status}</p>
                           <button
-                            onClick={() => handleAcceptRequest(id, freelancerId)}
-                            className="accept-request-btn"
+                            onClick={() => handleViewProfile(freelancerId)}
                           >
-                            Accept Request
+                            View Profile
                           </button>
-                          <button
-                            onClick={() => handleDeclineRequest(id, freelancerId)}
-                            className="decline-request-btn"
-                          >
-                            Decline Request
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
+                          {request.status === "requested" &&
+                            job.status === "open" && (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleAcceptRequest(id, freelancerId)
+                                  }
+                                  className="accept-request-btn"
+                                >
+                                  Accept Request
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeclineRequest(id, freelancerId)
+                                  }
+                                  className="decline-request-btn"
+                                >
+                                  Decline Request
+                                </button>
+                              </>
+                            )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
         ) : (
           <p>No jobs available at the moment.</p>
         )}

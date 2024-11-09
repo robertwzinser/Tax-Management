@@ -285,9 +285,14 @@ export const FreelancerWidgets = () => {
             <h3>Estimated Taxes</h3>
             <p style={{ color: "#e74c3c" }}>{estimatedTaxesDisplay}</p>
           </div>
-          <div>
-            <label>View Range:</label>
-            <select
+          <div>            
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Income Over Time</h2>
+        <select
               onChange={(e) => setTotalIncomeView(e.target.value)}
               value={totalIncomeView}
               className="custom-select"
@@ -297,12 +302,6 @@ export const FreelancerWidgets = () => {
               <option value="quarterly">This Quarter</option>
               <option value="annually">This Year</option>
             </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="card">
-        <h2>Income Over Time</h2>
         {incomeData.length > 0 ? (
           <canvas ref={chartRef}></canvas>
         ) : (

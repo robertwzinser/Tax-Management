@@ -42,6 +42,7 @@ const TaxSummary = () => {
         if (userRole === "Freelancer") {
           const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
           onValue(linkedEmployersRef, (snapshot) => {
+            console.log('Employers Data:', employers);
             const data = snapshot.val();
             if (data) {
               const employersData = Object.entries(data).map(
@@ -153,7 +154,7 @@ const TaxSummary = () => {
     doc.line(40, startY + 5, pageWidth - 40, startY + 5);
 
     // Table Headers
-    const tableHeaders = ["Service", "Income Amount", "Estimated Tax"];
+    const tableHeaders = ["Service", "Income Amount", "Estimated Tax", "Entry Date"];
     const headerY = startY + 30;
     let rowY = headerY + 20;
 
@@ -173,6 +174,7 @@ const TaxSummary = () => {
         entry.service,
         `$${entry.amount.toFixed(2)}`,
         `$${entry.estimatedTax ? entry.estimatedTax.toFixed(2) : "N/A"}`,
+        entry.date
       ];
 
       cells.forEach((cell, cellIndex) => {
@@ -288,6 +290,7 @@ const TaxSummary = () => {
                         <th>Service</th>
                         <th>Income Amount</th>
                         <th>Estimated Tax</th>
+                        <th>Entry Date</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -301,6 +304,7 @@ const TaxSummary = () => {
                               ? income.estimatedTax.toFixed(2)
                               : "N/A"}
                           </td>
+                          <td>{income.date}</td>
                         </tr>
                       ))}
                     </tbody>

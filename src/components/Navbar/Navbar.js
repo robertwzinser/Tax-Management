@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import GlobalNotification from "../../components/Notifications/GlobalNotification";
 import { getDatabase, ref, remove, child, get } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -10,19 +10,31 @@ import "../Notifications/Notifications.css";
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [userRole, setUserRole] = useState("");
+  const [userId, setUserId] = useState(null); // Store userId for profile link
+  const [loading, setLoading] = useState(true);
 
   const auth = getAuth();
   const db = getDatabase();
 
-  const [userRole, setUserRole] = useState("");
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Update notifications state when GlobalNotification fetches new data
   const handleNotificationsUpdate = (newNotifications) => {
     setNotifications(newNotifications);
   };
 
-  // Dismiss a notification
+  // Handle notification click with redirection if redirectUrl is present
+  const handleNotificationClick = (notification) => {
+    // If there's a redirect URL in the notification, navigate to it
+    if (notification.redirectUrl) {
+      navigate(notification.redirectUrl);
+    }
+
+    // Dismiss the notification after clicking
+    dismissNotification(notification.id);
+  };
+
+  // Dismiss a notification and remove it from Firebase
   const dismissNotification = (notificationId) => {
     const notificationRef = ref(
       db,
@@ -37,15 +49,14 @@ const Navbar = () => {
       .catch((error) => console.error("Error deleting notification:", error));
   };
 
-  // Format timestamp
   const formatTimestamp = (timestamp) => new Date(timestamp).toLocaleString();
 
   useEffect(() => {
     const dbRef = ref(getDatabase());
 
-    const fetchUserRole = async (userId) => {
+    const fetchUserRole = async (uid) => {
       try {
-        const snapshot = await get(child(dbRef, `users/${userId}`));
+        const snapshot = await get(child(dbRef, `users/${uid}`));
         if (snapshot.exists()) {
           const data = snapshot.val();
           setUserRole(data.role);
@@ -61,6 +72,7 @@ const Navbar = () => {
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        setUserId(user.uid); // Set the userId for the profile link
         fetchUserRole(user.uid);
       } else {
         setUserRole("");
@@ -78,15 +90,16 @@ const Navbar = () => {
       </div>
 
       <div className="right-buttons">
-        <Link to="/profile" className="nav-item profile-btn">
-          Profile
-        </Link>
+        {userId && (
+          <Link to={`/profile/${userId}`} className="nav-item profile-btn">
+            Profile
+          </Link>
+        )}
 
         <Link to="/user-settings" className="nav-item profile-btn">
           Settings
         </Link>
 
-        {/* Notifications Dropdown */}
         <div className="dropdown">
           <Link
             to="#"
@@ -108,13 +121,20 @@ const Navbar = () => {
           >
             {notifications.length > 0 ? (
               notifications.map((notif) => (
-                <div key={notif.id} className="notification-item">
+                <div
+                  key={notif.id}
+                  className="notification-item"
+                  onClick={() => handleNotificationClick(notif)}
+                >
                   <span>{notif.message}</span>
                   <span className="timestamp">
                     {formatTimestamp(notif.timestamp)}
                   </span>
                   <button
-                    onClick={() => dismissNotification(notif.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent redirect when dismissing
+                      dismissNotification(notif.id);
+                    }}
                     className="dismiss-btn"
                   >
                     X
@@ -128,7 +148,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* GlobalNotification component to manage notifications */}
       <GlobalNotification onNotificationsUpdate={handleNotificationsUpdate} />
     </nav>
   );

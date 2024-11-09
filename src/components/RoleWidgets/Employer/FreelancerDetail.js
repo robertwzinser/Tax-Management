@@ -64,14 +64,22 @@ const FreelancerDetail = () => {
       const data = snapshot.val();
       if (data) {
         const jobsList = Object.entries(data)
-          .filter(([jobId, job]) => job.freelancerId === freelancerId)
-          .map(([jobId, job]) => ({ ...job, jobId }));
+          .filter(([jobId, job]) => 
+            Object.values(job.requests || {}).some(request => 
+              request.freelancerId === freelancerId && request.status === 'accepted'
+            )
+          )
+          .map(([jobId, job]) => ({
+            ...job,
+            jobId
+          }));
         setJobs(jobsList);
       } else {
         setJobs([]);
       }
     });
   }, [freelancerId]);
+  
 
   useEffect(() => {
     const expensesRef = ref(db, "expenseCollection");

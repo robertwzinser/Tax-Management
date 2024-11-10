@@ -12,9 +12,51 @@ export const FreelancerWidgets = () => {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState("");
   const [incomeData, setIncomeData] = useState([]);
-  const [totalIncomeView, setTotalIncomeView] = useState("weekly");
+  const [totalIncomeView, setTotalIncomeView] = useState("all-time");
   const chartRef = useRef(null);
   const [chartInstance, setChartInstance] = useState(null);
+  const [deductions, setDeductions] = useState([]);
+  const [stateTaxRate, setStateTaxRate] = useState(0);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      // Fetch the user's profile to get the state
+      const userProfileRef = ref(db, `users/${user.uid}`);
+      onValue(userProfileRef, (snapshot) => {
+        const userProfile = snapshot.val();
+        if (userProfile && userProfile.state) {
+          // Fetch the tax rate for the user's state
+          const stateTaxRef = ref(
+            db,
+            `statesCollection/${userProfile.state}/taxRate`
+          );
+          onValue(stateTaxRef, (taxSnapshot) => {
+            const stateTaxRate = taxSnapshot.val();
+            setStateTaxRate(stateTaxRate); // Set the state tax rate
+          });
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      const deductionsRef = ref(db, `deductionCollection/${userId}`);
+      onValue(deductionsRef, (snapshot) => {
+        const fetchedDeductions = snapshot.val();
+        const deductionsList = fetchedDeductions
+          ? Object.entries(fetchedDeductions).map(([key, item]) => ({
+              id: key,
+              ...item,
+              date: new Date(item.date), // Convert stored date string to Date object
+            }))
+          : [];
+        setDeductions(deductionsList);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const userId = auth.currentUser?.uid;
@@ -35,6 +77,30 @@ export const FreelancerWidgets = () => {
       });
     }
   }, []);
+
+  const calculateTotalIncome = () => {
+    return incomeData.reduce((acc, curr) => acc + curr.amount, 0);
+  };
+
+  const calculateTotalDeductions = () => {
+    const filteredDeductions = filterIncomeByRange(deductions);
+    return filteredDeductions.reduce(
+      (acc, curr) => acc + (curr.amount || 0),
+      0
+    );
+  };
+
+  const calculateAGI = () => {
+    const totalIncome = calculateTotalIncome();
+    const totalDeductions = calculateTotalDeductions();
+    return totalIncome - totalDeductions;
+  };
+
+  const estimateTaxes = () => {
+    const agi = calculateAGI();
+    const stateTaxes = agi * stateTaxRate;
+    return stateTaxes;
+  };
 
   // Fetch income data for "All Employers" on initial load
   const fetchAllEmployersData = (employersData) => {
@@ -157,6 +223,8 @@ export const FreelancerWidgets = () => {
         return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
       } else if (totalIncomeView === "annually") {
         return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
+      } else if (totalIncomeView === "all-time") {
+        return true;
       }
       return true;
     });
@@ -234,9 +302,12 @@ export const FreelancerWidgets = () => {
         )
       : "N/A";
 
-  const totalIncomeDisplay = totalIncome !== "N/A" ? `$${parseFloat(totalIncome).toFixed(2)}` : "N/A";
-  const estimatedTaxesDisplay = estimatedTaxes !== "N/A" ? `$${parseFloat(estimatedTaxes).toFixed(2)}` : "N/A";
-
+  const totalIncomeDisplay =
+    totalIncome !== "N/A" ? `$${parseFloat(totalIncome).toFixed(2)}` : "N/A";
+  const estimatedTaxesDisplay =
+    estimatedTaxes !== "N/A"
+      ? `$${parseFloat(estimatedTaxes).toFixed(2)}`
+      : "N/A";
 
   return (
     <div className="freelancer-widgets">
@@ -275,17 +346,23 @@ export const FreelancerWidgets = () => {
       </div>
 
       <div className="card income-summary">
-        <h2>Income Summary</h2>
+        <h2>Financial Summary</h2>
         <div className="summary-info">
           <div className="summary-item">
-            <h3>Total Income</h3>
-            <p>{totalIncomeDisplay}</p>
+            <h3>Taxable Income</h3>
+            <p>${calculateTotalIncome().toFixed(2)}</p>
+          </div>
+          <div className="summary-item">
+            <h3>Deductions</h3>
+            <p>${calculateTotalDeductions().toFixed(2)}</p>
+          </div>
+          <div className="summary-item">
+            <h3>Adjusted Gross Income</h3>
+            <p>${calculateAGI().toFixed(2)}</p>
           </div>
           <div className="summary-item">
             <h3>Estimated Taxes</h3>
-            <p style={{ color: "#e74c3c" }}>{estimatedTaxesDisplay}</p>
-          </div>
-          <div>            
+            <p style={{ color: "#e74c3c" }}>${estimateTaxes().toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -293,15 +370,17 @@ export const FreelancerWidgets = () => {
       <div className="card">
         <h2>Income Over Time</h2>
         <select
-              onChange={(e) => setTotalIncomeView(e.target.value)}
-              value={totalIncomeView}
-              className="custom-select"
-            >
-              <option value="weekly">This Week</option>
-              <option value="monthly">This Month</option>
-              <option value="quarterly">This Quarter</option>
-              <option value="annually">This Year</option>
-            </select>
+          onChange={(e) => setTotalIncomeView(e.target.value)}
+          value={totalIncomeView}
+          className="custom-select"
+        >
+          <option value="all-time">All Time</option>
+          <option value="weekly">This Week</option>
+          <option value="monthly">This Month</option>
+          <option value="quarterly">This Quarter</option>
+          <option value="annually">This Year</option>
+        </select>
+
         {incomeData.length > 0 ? (
           <canvas ref={chartRef}></canvas>
         ) : (

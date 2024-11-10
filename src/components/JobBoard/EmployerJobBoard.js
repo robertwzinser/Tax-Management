@@ -242,6 +242,57 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
                   {job.status === "open" ? "Open for Requests" : "Accepted"}
                 </p>
 
+                
+              {/* Edit Job Section */}
+              {job.employerId === auth.currentUser?.uid && (
+                <>
+                  <button onClick={() => handleEditClick(id)}>Edit Job</button>
+                  {currentJobId === id && (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Edit Job Title"
+                        value={newJob.title}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, title: e.target.value })
+                        }
+                      />
+                      <textarea
+                        placeholder="Edit Job Description"
+                        value={newJob.description}
+                        onChange={(e) =>
+                          setNewJob({ ...newJob, description: e.target.value })
+                        }
+                      />
+                      <input
+                        type="number"
+                        placeholder="Edit Hourly Rate ($)"
+                        value={newJob.payment}
+                        onChange={(e) => setNewJob({ ...newJob, payment: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="date"
+                        placeholder="Edit Start Date"
+                        value={newJob.startDate}
+                        onChange={(e) => setNewJob({ ...newJob, startDate: e.target.value })}
+                        required
+                      />
+                      <input
+                        type="date"
+                        placeholder="Edit End Date"
+                        value={newJob.endDate}
+                        onChange={(e) => setNewJob({ ...newJob, endDate: e.target.value })}
+                        required
+                      />
+                      <button onClick={() => handleEditJob(id)}>
+                        Save Changes
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
                 {/* Job Requests Section */}
                 {job.requests && (
                   <div className="job-requests">

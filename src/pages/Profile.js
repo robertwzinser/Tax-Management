@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { getDatabase, ref, get, set } from "firebase/database";
 import "./Profile.css";
 
@@ -19,31 +19,34 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [states, setStates] = useState({}); // State data for the dropdown
 
-  // Fetch profile data based on uid parameter
   useEffect(() => {
-    const fetchProfileData = async () => {
-      const db = getDatabase();
-      const userRef = ref(db, `users/${uid}`);
-      try {
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          setProfileData(data);
-          setOriginalData(data); // Store initial data in case of cancel
-        } else {
-          console.log("Profile data not found");
-        }
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-      } finally {
-        setLoading(false);
+    const fetchStates = async () => {
+      const statesRef = ref(db, 'statesCollection');
+      const snapshot = await get(statesRef);
+      if (snapshot.exists()) {
+        setStates(snapshot.val());
       }
     };
 
-    if (uid) {
-      fetchProfileData();
-    }
+    fetchStates();
+
+    const fetchProfileData = async () => {
+      const db = getDatabase();
+      const userRef = ref(db, `users/${uid}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setProfileData(data);
+        setOriginalData(data); // Store initial data in case of cancel
+      } else {
+        console.log("Profile data not found");
+      }
+      setLoading(false);
+    };
+
+    fetchProfileData();
   }, [uid]);
 
   const handleChange = (e) => {
@@ -72,7 +75,7 @@ const Profile = () => {
 
   const handleCancel = () => {
     setProfileData(originalData); // Revert changes to original data
-    setIsEditing(false); // Exit edit mode
+    setIsEditing(false);
   };
 
   if (loading) return <div></div>;
@@ -127,6 +130,22 @@ const Profile = () => {
               onChange={handleChange}
               disabled={!isEditing}
             />
+
+            {profileData.role === "Freelancer" && (
+              <>
+                <label htmlFor="state">State</label>
+                <select
+                  id="state"
+                  value={profileData.state}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                >
+                  {Object.entries(states).map(([state, data]) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+              </>
+            )}
 
             <label htmlFor="bio">Bio</label>
             <input

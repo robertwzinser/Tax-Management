@@ -23,15 +23,17 @@
 }
 
 .income-summary .summary-info {
-  display: flex;
+  display: grid;
   justify-content: space-between;
   margin-top: 10px;
+  grid-template-columns: repeat(2, 1fr); 
 }
 
 .summary-item h3 {
   margin-bottom: 5px;
   font-size: 18px;
   font-weight: 600;
+  text-align: center;
 }
 
 .summary-item p {

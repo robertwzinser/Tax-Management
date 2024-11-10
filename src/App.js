@@ -80,7 +80,7 @@ const App = () => {
             element={isLoggedIn ? <Messaging /> : <Navigate to="/sign-in" />}
           />
           <Route
-            path="/profile"
+            path="/profile/:uid"
             element={isLoggedIn ? <Profile /> : <Navigate to="/sign-in" />}
           />
           <Route

@@ -47,7 +47,17 @@ input {
   color: #e0e0e0;
 }
 
+input:hover {
+  background-color: #252525;
+  transition: background-color 0.3s ease;
+}
+
 input:disabled {
+  background-color: #333; 
+  color: #888; 
+}
+
+select:disabled {
   background-color: #333; 
   color: #888; 
 }

@@ -19,7 +19,7 @@ body {
 }
 
 .sign-up-box {
-  background-color: rgba(33, 33, 33, 0.9);
+  background-color: rgba(26, 26, 26, 0.9);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   padding: 40px;
@@ -83,4 +83,19 @@ p a:hover {
 
 .custom-btn:hover {
   background-color: #1f4032;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+select {
+  width: 100%;
+  box-shadow: none;
+  border: 1px solid #3f3f3f;
+}
+
+input:focus,
+select:focus {
+  border-color: #295442;
+  outline: none; 
 }

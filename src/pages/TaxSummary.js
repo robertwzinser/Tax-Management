@@ -42,6 +42,7 @@ const TaxSummary = () => {
         if (userRole === "Freelancer") {
           const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
           onValue(linkedEmployersRef, (snapshot) => {
+            console.log("Employers Data:", employers);
             const data = snapshot.val();
             if (data) {
               const employersData = Object.entries(data).map(
@@ -86,8 +87,7 @@ const TaxSummary = () => {
     setSelectedEmployer(e.target.value);
   };
 
-  // Function to generate combined summary for all employers
-  const handleGenerateCombined = () => {
+  const handleGenerateCombined = async () => {
     const userId = auth.currentUser?.uid;
 
     if (employers.length === 0) {
@@ -95,27 +95,48 @@ const TaxSummary = () => {
       return;
     }
 
-    let allIncomeData = [];
+    let fetchPromises = [];
 
+    // Create a promise for each employer's income data fetch
     employers.forEach((employer) => {
       const incomeRef = ref(
         db,
         `users/${userId}/linkedEmployers/${employer.id}/incomeEntries`
       );
-      onValue(incomeRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const incomeEntries = Object.values(data);
-          allIncomeData = [...allIncomeData, ...incomeEntries];
-        }
 
-        if (allIncomeData.length > 0) {
-          generatePDF(allIncomeData, "Combined Tax Summary");
-        } else {
-          alert("No income data available across employers.");
-        }
+      let promise = new Promise((resolve, reject) => {
+        onValue(
+          incomeRef,
+          (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              resolve(Object.values(data)); // Resolve with the income entries
+            } else {
+              resolve([]); // Resolve with an empty array if no data
+            }
+          },
+          (error) => {
+            reject(error); // Reject the promise if there's an error
+          }
+        );
       });
+
+      fetchPromises.push(promise);
     });
+
+    try {
+      // Wait for all promises to resolve
+      let allIncomeData = (await Promise.all(fetchPromises)).flat(); // Combine all entries into one array
+
+      if (allIncomeData.length > 0) {
+        generatePDF(allIncomeData, "Combined Tax Summary");
+      } else {
+        alert("No income data available across employers.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch income data:", error);
+      alert("An error occurred while fetching income data.");
+    }
   };
 
   // Helper function to generate PDF for selected employer or combined
@@ -153,7 +174,12 @@ const TaxSummary = () => {
     doc.line(40, startY + 5, pageWidth - 40, startY + 5);
 
     // Table Headers
-    const tableHeaders = ["Service", "Income Amount", "Estimated Tax"];
+    const tableHeaders = [
+      "Service",
+      "Income Amount",
+      "Estimated Tax",
+      "Entry Date",
+    ];
     const headerY = startY + 30;
     let rowY = headerY + 20;
 
@@ -173,6 +199,7 @@ const TaxSummary = () => {
         entry.service,
         `$${entry.amount.toFixed(2)}`,
         `$${entry.estimatedTax ? entry.estimatedTax.toFixed(2) : "N/A"}`,
+        entry.date,
       ];
 
       cells.forEach((cell, cellIndex) => {
@@ -288,6 +315,7 @@ const TaxSummary = () => {
                         <th>Service</th>
                         <th>Income Amount</th>
                         <th>Estimated Tax</th>
+                        <th>Entry Date</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -301,6 +329,7 @@ const TaxSummary = () => {
                               ? income.estimatedTax.toFixed(2)
                               : "N/A"}
                           </td>
+                          <td>{income.date}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -338,7 +367,6 @@ const TaxSummary = () => {
           <button
             onClick={handleGenerateCombined}
             className="generate-button-combined"
-            disabled={!selectedEmployer}
           >
             Generate Combined Summary
           </button>

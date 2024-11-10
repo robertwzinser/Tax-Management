@@ -189,39 +189,31 @@ export const FreelancerWidgets = () => {
     }
   };
 
+  const aggregateIncomeByDate = (entries) => {
+    const aggregated = {};
+    entries.forEach((entry) => {
+      if (aggregated[entry.date]) {
+        aggregated[entry.date].amount += entry.amount;
+        aggregated[entry.date].estimatedTax += entry.estimatedTax;
+      } else {
+        aggregated[entry.date] = {
+          amount: entry.amount,
+          estimatedTax: entry.estimatedTax,
+        };
+      }
+    });
+    return Object.entries(aggregated).map(
+      ([date, { amount, estimatedTax }]) => ({
+        date,
+        amount,
+        estimatedTax,
+      })
+    );
+  };
+
   const filterIncomeByRange = (entries) => {
     const now = new Date();
-    let startDate = new Date();
-    let endDate = new Date(); 
-  
-    if (totalIncomeView === "weekly") {
-      startDate.setDate(now.getDate() - 7);
-      startDate.setHours(0, 0, 0, 0); 
-    } else if (totalIncomeView === "monthly") {
-      startDate.setMonth(now.getMonth() - 1);
-      startDate.setDate(1); 
-      startDate.setHours(0, 0, 0, 0);
-  
-      endDate = new Date(now.getFullYear(), now.getMonth(), 1); 
-    } else if (totalIncomeView === "quarterly") {
-      const currentQuarter = Math.floor(now.getMonth() / 3);
-      const startQuarterMonth = currentQuarter * 3 - 3; 
-      startDate.setMonth(startQuarterMonth);
-      startDate.setDate(1); 
-      startDate.setHours(0, 0, 0, 0);
-  
-      endDate.setMonth(currentQuarter * 3); 
-      endDate.setDate(1);
-    } else if (totalIncomeView === "annually") {
-      startDate.setFullYear(now.getFullYear() - 1); 
-      startDate.setMonth(0); 
-      startDate.setDate(1); 
-      startDate.setHours(0, 0, 0, 0);
-  
-      endDate = new Date(now.getFullYear(), 0, 1); 
-    }
-  
-    const filteredEntries = entries.filter((entry) => {
+    return entries.filter((entry) => {
       const entryDate = new Date(entry.date);
       if (totalIncomeView === "weekly") {
         return entryDate >= new Date(now.setDate(now.getDate() - 7));
@@ -236,148 +228,57 @@ export const FreelancerWidgets = () => {
       }
       return true;
     });
-  
-    console.log("Filtered Data:", filteredEntries); // Log filtered data to inspect
-    return filteredEntries;
   };
-  
-  const aggregateIncome = (data) => {
-    if (totalIncomeView === "annually") {
-      // Annual aggregation: Sum all income amounts for the entire year
-      const totalIncome = data.reduce((sum, entry) => sum + entry.amount, 0);
-      console.log("Aggregated Annual Data:", [{ date: "Total Annual Income", amount: totalIncome }]);
-      return [{ date: "Total Annual Income", amount: totalIncome }];
-    }
-  
-    if (totalIncomeView === "quarterly") {
-      // Quarterly aggregation: Sum income amounts by quarter
-      const quarterlyIncome = {};
-      data.forEach((entry) => {
-        const date = new Date(entry.date);
-        const year = date.getFullYear();
-        const quarter = Math.floor(date.getMonth() / 3) + 1;
-        const key = `${year}-Q${quarter}`;
-  
-        if (!quarterlyIncome[key]) {
-          quarterlyIncome[key] = 0;
-        }
-        quarterlyIncome[key] += entry.amount;
-      });
-      console.log("Aggregated Quarterly Data:", quarterlyIncome);
-  
-      return Object.keys(quarterlyIncome)
-        .sort() // Sort quarters in chronological order
-        .map((key) => ({ date: key, amount: quarterlyIncome[key] }));
-    }
-  
-    if (totalIncomeView === "monthly") {
-      // Monthly aggregation: Sum income amounts by month
-      const monthlyIncome = {};
-      data.forEach((entry) => {
-        const date = new Date(entry.date);
-        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; // Format: YYYY-MM
-  
-        if (!monthlyIncome[yearMonth]) {
-          monthlyIncome[yearMonth] = 0;
-        }
-        monthlyIncome[yearMonth] += entry.amount;
-      });
-      console.log("Aggregated Monthly Data:", monthlyIncome);
-  
-      return Object.keys(monthlyIncome)
-        .sort() // Sort months in chronological order
-        .map((key) => ({ date: key, amount: monthlyIncome[key] }));
-    }
-  
-    if (totalIncomeView === "weekly") {
-      // Weekly aggregation: Sum income amounts by week
-      const weeklyIncome = {};
-      data.forEach((entry) => {
-        const date = new Date(entry.date);
-        const year = date.getFullYear();
-        const week = getWeekNumber(date); // Helper function to get week number
-        const key = `${year}-W${week}`;
-  
-        if (!weeklyIncome[key]) {
-          weeklyIncome[key] = 0;
-        }
-        weeklyIncome[key] += entry.amount;
-      });
-      console.log("Aggregated Weekly Data:", weeklyIncome);
-  
-      return Object.keys(weeklyIncome)
-        .sort() // Sort weeks in chronological order
-        .map((key) => ({ date: key, amount: weeklyIncome[key] }));
-    }
-  
-    // Default: Return raw data if no valid view is selected
-    console.log("Raw Data:", data);
-    return data.map((entry) => ({ date: entry.date, amount: entry.amount }));
-  };
-  
-  // Helper function to get the week number of the year
-  const getWeekNumber = (date) => {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date - firstDayOfYear) / 86400000; // Convert milliseconds to days
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  };
-  
-  
+
   const createIncomeChart = () => {
     if (chartInstance) {
       chartInstance.destroy();
     }
-  
+
     const ctx = chartRef.current;
-    const filteredData = filterIncomeByRange(incomeData);
-    const aggregatedData = aggregateIncome(filteredData);
-  
-    if (aggregatedData.length === 0) {
-      console.log("No data to display in chart.");
-      return; // Exit if no data to display
-    }
-  
-    console.log("Chart Data:", aggregatedData); // Log final data used in chart
-    const chartData = {
-      labels: aggregatedData.map((entry) => entry.date),
-      datasets: [
-        {
-          label: "Income",
-          data: aggregatedData.map((entry) => entry.amount),
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          borderColor: "rgba(75, 192, 192, 1)",
-          borderWidth: 1,
-          tension: 0.4,
-        },
-      ],
-    };
-  
-    const newChartInstance = new Chart(ctx, {
-      type: "line",
-      data: chartData,
-      options: {
-        responsive: true,
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                return `Income: $${context.raw}`;
+    if (incomeData.length > 0) {
+      const filteredData = filterIncomeByRange(incomeData);
+      const aggregatedData = aggregateIncomeByDate(filteredData);
+      const chartData = {
+        labels: aggregatedData.map((entry) => entry.date),
+        datasets: [
+          {
+            label: "Income",
+            data: aggregatedData.map((entry) => entry.amount),
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+            tension: 0.4,
+          },
+        ],
+      };
+
+      const newChartInstance = new Chart(ctx, {
+        type: "line",
+        data: chartData,
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `Income: $${context.raw}`;
+                },
               },
             },
           },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
           },
         },
-      },
-    });
-  
-    setChartInstance(newChartInstance);
+      });
+
+      setChartInstance(newChartInstance);
+    }
   };
-  
-  
+
   useEffect(() => {
     if (incomeData.length > 0) {
       createIncomeChart();

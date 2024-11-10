@@ -166,19 +166,27 @@ const Navbar = () => {
 
         {/* Notifications Dropdown */}
         <div className="dropdown">
-      <Link
-        to="#"
-        className="notifications-btn"
-        onClick={(e) => {
-          e.preventDefault();
-          setShowNotifications(!showNotifications);
-        }}
-      >
-        <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
-        {notifications.length > 0 && (
-          <span className="notification-count">{notifications.length}</span>
-        )}
-      </Link>
+        <Link
+  to="#"
+  className="notifications-btn"
+  onClick={(e) => {
+    e.preventDefault();
+    setShowNotifications(!showNotifications);
+  }}
+>
+  <NotificationsRoundedIcon sx={{ fontSize: 24 }} />
+  {userRoleRef.current &&
+    notifications.filter((notif) => 
+      userRoleRef.current.toLowerCase() !== "employer" || notif.type !== "job"
+    ).length > 0 && (
+      <span className="notification-count">
+        {notifications.filter((notif) => 
+          userRoleRef.current.toLowerCase() !== "employer" || notif.type !== "job"
+        ).length}
+      </span>
+    )}
+</Link>
+
       <div
         className={`notifications-dropdown ${showNotifications ? "show" : ""}`}
       >

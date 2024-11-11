@@ -60,6 +60,31 @@ const DailyIncome = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (selectedClient && userId) {
+      const jobsRef = ref(db, `jobs/`);
+      onValue(jobsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const filteredJobs = Object.entries(data).filter(
+            ([id, job]) =>
+              job.employerId === selectedClient &&
+              job.requests &&
+              Object.values(job.requests).some(
+                (request) =>
+                  request.freelancerId === userId &&
+                  request.status === "accepted"
+              )
+          );
+          setJobs(filteredJobs.map(([id, job]) => ({ ...job, jobId: id })));
+        }
+      });
+    } else {
+      setJobs([]); // Reset jobs if no employer is selected
+    }
+  }, [selectedClient]);
+
   // Update the estimated tax whenever the amount or tax rate changes
   useEffect(() => {
     setEstimatedTax(parseFloat((amount * taxRate).toFixed(2))); // Calculate and round to 2 decimal places

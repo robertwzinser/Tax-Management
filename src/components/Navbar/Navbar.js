@@ -1,4 +1,7 @@
+
 import React, { useEffect, useState, useRef } from "react";
+
+
 import { Link, useNavigate } from "react-router-dom";
 import GlobalNotification from "../../components/Notifications/GlobalNotification";
 import { getDatabase, ref, remove, child, get } from "firebase/database";
@@ -11,6 +14,7 @@ import JobNotifications from "../Notifications/JobNotifications";
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+
   const navigate = useNavigate();
   const auth = getAuth();
   const db = getDatabase();
@@ -50,6 +54,17 @@ const Navbar = () => {
     updateShouldJobShowNotifications();
   };
 
+
+  // Handle notification click with redirection if redirectUrl is present
+  const handleNotificationClick = (notification) => {
+    // If there's a redirect URL in the notification, navigate to it
+    if (notification.redirectUrl) {
+      navigate(notification.redirectUrl);
+    }
+  };
+
+  // Dismiss a notification and remove it from Firebase
+
   const dismissNotification = (notificationId) => {
     const notificationRef = ref(
       db,
@@ -69,9 +84,9 @@ const Navbar = () => {
   useEffect(() => {
     const dbRef = ref(getDatabase());
 
-    const fetchUserRole = async (userId) => {
+    const fetchUserRole = async (uid) => {
       try {
-        const snapshot = await get(child(dbRef, `users/${userId}`));
+        const snapshot = await get(child(dbRef, `users/${uid}`));
         if (snapshot.exists()) {
           const data = snapshot.val();
           userRoleRef.current = data.role;
@@ -89,6 +104,7 @@ const Navbar = () => {
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        setUserId(user.uid); // Set the userId for the profile link
         fetchUserRole(user.uid);
       } else {
         userRoleRef.current = "";
@@ -146,9 +162,11 @@ const Navbar = () => {
       </div>
 
       <div className="right-buttons">
-        <Link to="/profile" className="nav-item profile-btn">
-          Profile
-        </Link>
+        {userId && (
+          <Link to={`/profile/${userId}`} className="nav-item profile-btn">
+            Profile
+          </Link>
+        )}
 
         <Link to="/user-settings" className="nav-item profile-btn">
           Settings
@@ -176,8 +194,35 @@ const Navbar = () => {
               )}
           </Link>
 
+
           <div className={`notifications-dropdown ${showNotifications ? "show" : ""}`}>
             {renderNotifications()}
+
+            {notifications.length > 0 ? (
+              notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className="notification-item"
+                  onClick={() => handleNotificationClick(notif)}
+                >
+                  <span>{notif.message}</span>
+                  <span className="timestamp">
+                    {formatTimestamp(notif.timestamp)}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent redirect when dismissing
+                      dismissNotification(notif.id);
+                    }}
+                    className="dismiss-btn"
+                  >
+                    X
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="no-notifications">No notifications</div>
+            )}
           </div>
         </div>
       </div>

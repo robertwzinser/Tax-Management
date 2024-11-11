@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database";
-import { db, auth } from "../../../firebase"; // Adjust the import to your structure
+import { ref, onValue, get, push } from "firebase/database";
+import { db, auth } from "../../../firebase";
 import { useNavigate } from "react-router-dom";
 import "../Freelancer/DailyIncome.css";
 
 const AddIncomeForm = () => {
   const [freelancers, setFreelancers] = useState([]);
-  const [selectedFreelancer, setSelectedFreelancer] = useState(""); // Selected freelancer
-  const [jobs, setJobs] = useState([]); // Jobs linked to the selected freelancer
-  const [selectedJob, setSelectedJob] = useState(null); // Selected job
-  const [service, setService] = useState(""); // Service description
-  const [amount, setAmount] = useState(0); // Amount earned
-  const [date, setDate] = useState(""); // Date of service
-  const [estimatedTax, setEstimatedTax] = useState(0); // Estimated tax
+  const [selectedFreelancer, setSelectedFreelancer] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [service, setService] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [date, setDate] = useState("");
+  const [estimatedTax, setEstimatedTax] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
   const navigate = useNavigate();
 
-  // Fetch freelancers who are linked to the employer
   useEffect(() => {
     const employerId = auth.currentUser?.uid;
     if (employerId) {
@@ -31,6 +31,7 @@ const AddIncomeForm = () => {
             .map(([id, user]) => ({
               id,
               fullname: `${user.firstname} ${user.lastname}`,
+              state: user.state,
             }));
           setFreelancers(freelancersData);
         }
@@ -38,29 +39,60 @@ const AddIncomeForm = () => {
     }
   }, []);
 
-  // Fetch jobs based on the selected freelancer
   useEffect(() => {
     if (selectedFreelancer) {
-      const jobsRef = ref(db, `jobs/`);
+      const selectedFreelancerDetails = freelancers.find(
+        (freelancer) => freelancer.id === selectedFreelancer
+      );
+      if (selectedFreelancerDetails) {
+        const stateRef = ref(
+          db,
+          `statesCollection/${selectedFreelancerDetails.state}`
+        );
+        get(stateRef).then((snapshot) => {
+          if (snapshot.exists()) {
+            setTaxRate(snapshot.val().taxRate || 0);
+          } else {
+            setTaxRate(0);
+          }
+        });
+      }
+    }
+  }, [selectedFreelancer, freelancers]);
+
+  useEffect(() => {
+    const employerId = auth.currentUser?.uid;
+    if (selectedFreelancer && employerId) {
+      const jobsRef = ref(db, "jobs");
       onValue(jobsRef, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          const filteredJobs = Object.entries(data).filter(
-            ([, job]) => job.freelancerId === selectedFreelancer
-          );
-          setJobs(filteredJobs);
+        const filteredJobs = [];
+        for (const jobId in data) {
+          const job = data[jobId];
+          const requests = job.requests || {};
+          for (const requestId in requests) {
+            const request = requests[requestId];
+            if (
+              request.freelancerId === selectedFreelancer &&
+              request.status === "accepted" &&
+              job.employerId === employerId
+            ) {
+              filteredJobs.push({ ...job, jobId });
+              break;
+            }
+          }
         }
+        setJobs(filteredJobs);
       });
+    } else {
+      setJobs([]);
     }
   }, [selectedFreelancer]);
 
-  // Handle real-time tax calculation (e.g., 20% estimate)
   useEffect(() => {
-    const taxRate = 0.2;
     setEstimatedTax(amount * taxRate);
-  }, [amount]);
+  }, [amount, taxRate]);
 
-  // Handle income submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const employerId = auth.currentUser?.uid;
@@ -68,14 +100,11 @@ const AddIncomeForm = () => {
       alert("You must be logged in to submit income entries.");
       return;
     }
-
-    // Validate inputs
     if (!selectedFreelancer || !selectedJob || !service || !amount || !date) {
       alert("Please fill in all fields.");
       return;
     }
 
-    // Prepare the income entry
     const incomeEntry = {
       jobId: selectedJob.jobId,
       service,
@@ -84,7 +113,6 @@ const AddIncomeForm = () => {
       estimatedTax,
     };
 
-    // Store the income entry under the selected freelancer and job
     const incomeRef = ref(
       db,
       `users/${selectedFreelancer}/linkedEmployers/${employerId}/incomeEntries`
@@ -129,15 +157,8 @@ const AddIncomeForm = () => {
               required
             >
               <option value="">-- Select a Job --</option>
-              {jobs.map(([id, job]) => (
-                <option
-                  key={id}
-                  value={JSON.stringify({
-                    jobId: id,
-                    employerId: job.employerId,
-                    freelancerId: job.freelancerId,
-                  })}
-                >
+              {jobs.map((job) => (
+                <option key={job.jobId} value={JSON.stringify(job)}>
                   {job.title}
                 </option>
               ))}

@@ -9,10 +9,12 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
 
   useEffect(() => {
     if (!userId) return;
-  
+
+
+    console.log(`Listening to notifications for userId: ${userId}`); // Debug log for userId
+
+    // Listen only to the logged-in user's notifications
     const notificationsRef = ref(db, `notifications/${userId}`);
-    
-    // Attach listener to fetch notifications
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val();
       console.log(data)
@@ -22,10 +24,12 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
             message: notification.message,
             timestamp: notification.timestamp,
             fromName: notification.fromName,
+            type: notification.type,
           }))
         : [];
 
-      // Only update notifications state if there are changes
+      console.log(`Fetched notifications for userId ${userId}:`, notificationsList); // Debug log for notifications
+
       if (
         JSON.stringify(notificationsList) !==
         JSON.stringify(prevNotificationsRef.current)
@@ -33,14 +37,12 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
         setNotifications(notificationsList);
         prevNotificationsRef.current = notificationsList;
 
-        // Call onNotificationsUpdate only if notifications changed
         if (typeof onNotificationsUpdate === "function") {
           onNotificationsUpdate(notificationsList);
         }
       }
     });
 
-    // Clean up listener to prevent memory leaks
     return () => unsubscribe();
   }, [userId, onNotificationsUpdate]);
 

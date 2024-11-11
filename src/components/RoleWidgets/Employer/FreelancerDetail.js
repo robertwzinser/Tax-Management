@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ref, onValue, update } from "firebase/database";
-import { db } from "../../../firebase";
+import { db, auth } from "../../../firebase";
 import Chart from "chart.js/auto";
 import {
   Accordion,
@@ -25,12 +25,14 @@ const FreelancerDetail = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [chartInstance, setChartInstance] = useState(null);
   const [viewRange, setViewRange] = useState("monthly");
+  const employerId = auth.currentUser.uid; // Assuming the current user's UID is the employer's ID
 
   useEffect(() => {
     const freelancerRef = ref(db, `users/${freelancerId}`);
     onValue(freelancerRef, (snapshot) => {
       const data = snapshot.val();
       setFreelancer({
+        firstname: `${data.firstname}`,
         fullname: `${data.firstname} ${data.lastname}`,
         email: data.email,
       });
@@ -38,43 +40,51 @@ const FreelancerDetail = () => {
   }, [freelancerId]);
 
   useEffect(() => {
-    const incomeRef = ref(db, `users/${freelancerId}/linkedEmployers`);
+    // This path assumes each freelancer has a sub-node for each employer under 'linkedEmployers'
+    const incomeRef = ref(
+      db,
+      `users/${freelancerId}/linkedEmployers/${employerId}/incomeEntries`
+    );
     onValue(incomeRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const employerIncome = Object.entries(data).reduce(
-          (acc, [employerId, employerData]) => {
-            if (employerData.incomeEntries) {
-              acc.push(...Object.values(employerData.incomeEntries));
-            }
-            return acc;
-          },
-          []
-        );
-        setIncomeData(employerIncome);
+        setIncomeData(Object.values(data));
       } else {
         setIncomeData([]);
       }
     });
-  }, [freelancerId]);
+  }, [freelancerId, employerId]);
 
   useEffect(() => {
+    const employerId = auth.currentUser.uid; // This assumes you're logged in and have an ID
     const jobsRef = ref(db, `jobs`);
+
     onValue(jobsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const jobsList = Object.entries(data)
-          .filter(([jobId, job]) => job.freelancerId === freelancerId)
-          .map(([jobId, job]) => ({ ...job, jobId }));
+          .filter(
+            ([jobId, job]) =>
+              job.employerId === employerId && // Ensure only jobs from this employer are included
+              Object.values(job.requests || {}).some(
+                (request) =>
+                  request.freelancerId === freelancerId &&
+                  request.status === "accepted"
+              )
+          )
+          .map(([jobId, job]) => ({
+            ...job,
+            jobId,
+          }));
         setJobs(jobsList);
       } else {
         setJobs([]);
       }
     });
-  }, [freelancerId]);
+  }, [freelancerId, auth.currentUser.uid]); // Add employerId to the dependencies if it's dynamic
 
   useEffect(() => {
-    const expensesRef = ref(db, "expenseCollection");
+    const expensesRef = ref(db, "reimbursementCollection");
     onValue(expensesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -100,7 +110,7 @@ const FreelancerDetail = () => {
   }, [freelancerId]);
 
   const handleExpenseDecision = async (expenseId, decision) => {
-    const expenseRef = ref(db, `expenseCollection/${expenseId}`);
+    const expenseRef = ref(db, `reimbursementCollection/${expenseId}`);
     try {
       await update(expenseRef, { accepted: decision });
       alert(`Expense ${decision ? "accepted" : "rejected"} successfully!`);
@@ -127,19 +137,53 @@ const FreelancerDetail = () => {
 
   const filterIncomeByRange = (entries) => {
     const now = new Date();
-    return entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      if (viewRange === "weekly") {
-        return entryDate >= new Date(now.setDate(now.getDate() - 7));
-      } else if (viewRange === "monthly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
-      } else if (viewRange === "quarterly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
-      } else if (viewRange === "annually") {
-        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
+    let startDate = new Date();
+    let endDate = new Date();
+  
+    if (viewRange === "weekly") {
+      const dayOfWeek = now.getDay();
+      startDate.setDate(now.getDate() - dayOfWeek); // Set to the most recent Sunday
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7); // Set to the following Sunday
+    } else if (viewRange === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1); // First day of the current month
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First day of the next month
+    } else if (viewRange === "quarterly") {
+      const currentMonth = now.getMonth();
+      if (currentMonth < 3) {
+        startDate = new Date(now.getFullYear(), 0, 1); // January 1st
+        endDate = new Date(now.getFullYear(), 3, 1); // April 1st
+      } else if (currentMonth < 6) {
+        startDate = new Date(now.getFullYear(), 3, 1); // April 1st
+        endDate = new Date(now.getFullYear(), 6, 1); // July 1st
+      } else if (currentMonth < 9) {
+        startDate = new Date(now.getFullYear(), 6, 1); // July 1st
+        endDate = new Date(now.getFullYear(), 9, 1); // October 1st
+      } else {
+        startDate = new Date(now.getFullYear(), 9, 1); // October 1st
+        endDate = new Date(now.getFullYear() + 1, 0, 1); // January 1st of the next year
       }
-      return true;
+    } else if (viewRange === "annually") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear() + 1, 0, 1);
+    } else if (viewRange === "all-time") {
+      // For all-time view, return all entries without date filtering
+      return entries;
+    }
+  
+    const filteredEntries = entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate < endDate;
     });
+  
+    console.log("Filtered Data for", viewRange, ":", filteredEntries);
+    return filteredEntries;
   };
 
   const createIncomeChart = () => {
@@ -147,7 +191,9 @@ const FreelancerDetail = () => {
       chartInstance.destroy();
     }
 
-    const ctx = document.getElementById("freelancerIncomeChart").getContext("2d");
+    const ctx = document
+      .getElementById("freelancerIncomeChart")
+      .getContext("2d");
     const filteredData = filterIncomeByRange(incomeData);
     const aggregatedData = aggregateIncomeByDate(filteredData);
     const chartData = {
@@ -213,44 +259,45 @@ const FreelancerDetail = () => {
 
           <Box sx={{ mt: 4 }}>
             <Typography variant="h5" component="h3">
-              Overall Income
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Typography variant="body2">View Range:</Typography>
+              {freelancer.firstname}'s overall income with you over
               <Select
                 value={viewRange}
                 onChange={(e) => setViewRange(e.target.value)}
                 sx={{
+                  ml: 2,
                   mb: 2,
-                  color: '#ffffff',
-                  backgroundColor: '#333333',
-                  '.MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#555555',
+                  mr: 2,
+                  color: "#ffffff",
+                  backgroundColor: "#333333",
+                  ".MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#555555",
                   },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#888888',
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#888888",
                   },
-                  '.MuiSvgIcon-root': {
-                    color: '#ffffff',
+                  ".MuiSvgIcon-root": {
+                    color: "#ffffff",
                   },
                 }}
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      backgroundColor: '#333333',
-                      color: '#ffffff',
+                      backgroundColor: "#333333",
+                      color: "#ffffff",
                     },
                   },
                 }}
               >
+                <MenuItem value="all-time">All Time</MenuItem>
                 <MenuItem value="weekly">This Week</MenuItem>
                 <MenuItem value="monthly">This Month</MenuItem>
                 <MenuItem value="quarterly">This Quarter</MenuItem>
                 <MenuItem value="annually">This Year</MenuItem>
               </Select>
-              <Typography variant="h6">
-                Total Income: ${calculateOverallIncome().toFixed(2)}
-              </Typography>
+              has been <strong>${calculateOverallIncome().toFixed(2)}</strong>.
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Typography></Typography>
             </Box>
             <canvas id="freelancerIncomeChart"></canvas>
           </Box>
@@ -264,8 +311,13 @@ const FreelancerDetail = () => {
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {jobs.map((job, index) => (
-                  <Accordion key={index} sx={{ backgroundColor: "#1e1e1e", color: "white" }}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+                  <Accordion
+                    key={index}
+                    sx={{ backgroundColor: "#1e1e1e", color: "white" }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
+                    >
                       <Typography variant="h6">{job.title}</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -292,26 +344,58 @@ const FreelancerDetail = () => {
             </Typography>
             {expenses.length > 0 ? (
               expenses.map((expense, index) => (
-                <Accordion key={index} sx={{ backgroundColor: "#1e1e1e", color: "white" }}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
-                    <Typography>{expense.category}: ${expense.expense}</Typography>
+                <Accordion
+                  key={index}
+                  sx={{ backgroundColor: "#1e1e1e", color: "white" }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
+                  >
+                    <Typography>
+                      {expense.category}: ${expense.expense}
+                    </Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography variant="body2" sx={{ mb: 1 }}>Date: {expense.date}</Typography>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      Date: {expense.date}
+                    </Typography>
                     <Typography variant="body2">
-                      <a href={expense.downloadURL} target="_blank" rel="noopener noreferrer">View Receipt</a>
+                      <a
+                        href={expense.downloadURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View Receipt
+                      </a>
                     </Typography>
                     {expense.accepted === undefined ? (
                       <Box sx={{ mt: 2 }}>
-                        <Button variant="contained" color="success" onClick={() => handleExpenseDecision(expense.id, true)} sx={{ mr: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={() =>
+                            handleExpenseDecision(expense.id, true)
+                          }
+                          sx={{ mr: 1 }}
+                        >
                           Accept
                         </Button>
-                        <Button variant="outlined" color="error" onClick={() => handleExpenseDecision(expense.id, false)}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() =>
+                            handleExpenseDecision(expense.id, false)
+                          }
+                        >
                           Reject
                         </Button>
                       </Box>
                     ) : (
-                      <Typography variant="body2" sx={{ mt: 1 }} color={expense.accepted ? "success.main" : "error.main"}>
+                      <Typography
+                        variant="body2"
+                        sx={{ mt: 1 }}
+                        color={expense.accepted ? "success.main" : "error.main"}
+                      >
                         {expense.accepted ? "Accepted" : "Rejected"}
                       </Typography>
                     )}
@@ -324,7 +408,6 @@ const FreelancerDetail = () => {
           </Box>
 
           <Box sx={{ mt: 4 }}>
-
             <Button
               class="add-income-button"
               variant="contained"

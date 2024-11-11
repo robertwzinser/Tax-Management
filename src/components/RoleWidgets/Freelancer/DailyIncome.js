@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, get, push } from "firebase/database";
 import { auth, db } from "../../../firebase";
 import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
 
 const DailyIncome = () => {
   const [employers, setEmployers] = useState([]);
-  const [selectedClient, setSelectedClient] = useState(""); // Selected employer
-  const [jobs, setJobs] = useState([]); // Jobs linked to the selected employer
-  const [selectedJob, setSelectedJob] = useState(null); // Selected job
-  const [service, setService] = useState(""); // Service description
-  const [amount, setAmount] = useState(0); // Amount earned
-  const [date, setDate] = useState(""); // Date of service
-  const [estimatedTax, setEstimatedTax] = useState(0); // Estimated tax
+  const [selectedClient, setSelectedClient] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [service, setService] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [date, setDate] = useState("");
+  const [estimatedTax, setEstimatedTax] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
   const navigate = useNavigate();
 
-  // Fetch linked employers from Firebase for the freelancer
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (userId) {
@@ -30,10 +30,36 @@ const DailyIncome = () => {
           setEmployers(employersData);
         }
       });
+
+      // Fetch the state of the logged-in freelancer and get their tax rate
+      const freelancerRef = ref(db, `users/${userId}`);
+      onValue(freelancerRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.state) {
+          const freelancerState = data.state;
+          const stateRef = ref(db, `statesCollection/${freelancerState}`);
+          get(stateRef)
+            .then((stateSnapshot) => {
+              if (stateSnapshot.exists()) {
+                const stateData = stateSnapshot.val();
+                setTaxRate(stateData.taxRate || 0);
+              } else {
+                console.warn("No tax rate data available for this state.");
+                setTaxRate(0); // Default to 0 if not found
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching tax rate:", error);
+              setTaxRate(0); // Handle error gracefully
+            });
+        } else {
+          console.warn("Freelancer's state not found.");
+          setTaxRate(0); // Default to 0 if no state is found
+        }
+      });
     }
   }, []);
 
-  // Fetch jobs based on the selected employer, filtering by the freelancerId
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (selectedClient && userId) {
@@ -41,12 +67,17 @@ const DailyIncome = () => {
       onValue(jobsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          // Filter jobs by employerId and freelancerId (only show jobs for the logged-in freelancer)
           const filteredJobs = Object.entries(data).filter(
-            ([, job]) =>
-              job.employerId === selectedClient && job.freelancerId === userId
+            ([id, job]) =>
+              job.employerId === selectedClient &&
+              job.requests &&
+              Object.values(job.requests).some(
+                (request) =>
+                  request.freelancerId === userId &&
+                  request.status === "accepted"
+              )
           );
-          setJobs(filteredJobs);
+          setJobs(filteredJobs.map(([id, job]) => ({ ...job, jobId: id })));
         }
       });
     } else {
@@ -54,13 +85,11 @@ const DailyIncome = () => {
     }
   }, [selectedClient]);
 
-  // Handle real-time tax calculation (e.g., 20% estimate)
+  // Update the estimated tax whenever the amount or tax rate changes
   useEffect(() => {
-    const taxRate = 0.2;
-    setEstimatedTax(amount * taxRate);
-  }, [amount]);
+    setEstimatedTax(parseFloat((amount * taxRate).toFixed(2))); // Calculate and round to 2 decimal places
+  }, [amount, taxRate]);
 
-  // Handle income submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const userId = auth.currentUser?.uid;
@@ -69,22 +98,29 @@ const DailyIncome = () => {
       return;
     }
 
-    // Validate inputs
     if (!selectedClient || !selectedJob || !service || !amount || !date) {
       alert("Please fill in all fields.");
       return;
     }
 
-    // Prepare the income entry
     const incomeEntry = {
-      jobId: selectedJob.jobId, // Update to include jobId
+      jobId: selectedJob.jobId,
       service,
-      amount: parseFloat(amount),
+      amount: parseFloat(amount), // Ensure amount is a float
       date,
-      estimatedTax,
+      estimatedTax: parseFloat(estimatedTax), // Ensure estimatedTax is a float
     };
 
-    // Store the income entry under the selected employer and job
+    if (
+      new Date(date) < new Date(selectedJob.startDate) ||
+      new Date(date) > new Date(selectedJob.endDate)
+    ) {
+      alert(
+        "Income entry date must be within the job's start and end date range."
+      );
+      return;
+    }
+
     const incomeRef = ref(
       db,
       `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`
@@ -129,13 +165,15 @@ const DailyIncome = () => {
               required
             >
               <option value="">-- Select a Job --</option>
-              {jobs.map(([id, job]) => (
+              {jobs.map((job) => (
                 <option
-                  key={id}
+                  key={job.jobId}
                   value={JSON.stringify({
-                    jobId: id,
+                    jobId: job.jobId,
                     employerId: job.employerId,
                     freelancerId: job.freelancerId,
+                    startDate: job.startDate,
+                    endDate: job.endDate,
                   })}
                 >
                   {job.title}

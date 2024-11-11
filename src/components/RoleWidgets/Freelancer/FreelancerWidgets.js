@@ -12,9 +12,51 @@ export const FreelancerWidgets = () => {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState("");
   const [incomeData, setIncomeData] = useState([]);
-  const [totalIncomeView, setTotalIncomeView] = useState("weekly");
+  const [totalIncomeView, setTotalIncomeView] = useState("all-time");
   const chartRef = useRef(null);
   const [chartInstance, setChartInstance] = useState(null);
+  const [deductions, setDeductions] = useState([]);
+  const [stateTaxRate, setStateTaxRate] = useState(0);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      // Fetch the user's profile to get the state
+      const userProfileRef = ref(db, `users/${user.uid}`);
+      onValue(userProfileRef, (snapshot) => {
+        const userProfile = snapshot.val();
+        if (userProfile && userProfile.state) {
+          // Fetch the tax rate for the user's state
+          const stateTaxRef = ref(
+            db,
+            `statesCollection/${userProfile.state}/taxRate`
+          );
+          onValue(stateTaxRef, (taxSnapshot) => {
+            const stateTaxRate = taxSnapshot.val();
+            setStateTaxRate(stateTaxRate); // Set the state tax rate
+          });
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (userId) {
+      const deductionsRef = ref(db, `deductionCollection/${userId}`);
+      onValue(deductionsRef, (snapshot) => {
+        const fetchedDeductions = snapshot.val();
+        const deductionsList = fetchedDeductions
+          ? Object.entries(fetchedDeductions).map(([key, item]) => ({
+              id: key,
+              ...item,
+              date: new Date(item.date), // Convert stored date string to Date object
+            }))
+          : [];
+        setDeductions(deductionsList);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const userId = auth.currentUser?.uid;
@@ -35,6 +77,31 @@ export const FreelancerWidgets = () => {
       });
     }
   }, []);
+
+  const calculateTotalIncome = () => {
+    const filteredincomeData = filterIncomeByRange(incomeData);
+    return filteredincomeData.reduce((acc, curr) => acc + curr.amount, 0);
+  };
+
+  const calculateTotalDeductions = () => {
+    const filteredDeductions = filterIncomeByRange(deductions);
+    return filteredDeductions.reduce(
+      (acc, curr) => acc + (curr.amount || 0),
+      0
+    );
+  };
+
+  const calculateAGI = () => {
+    const totalIncome = calculateTotalIncome();
+    const totalDeductions = calculateTotalDeductions();
+    return totalIncome - totalDeductions;
+  };
+
+  const estimateTaxes = () => {
+    const agi = calculateAGI();
+    const stateTaxes = agi * stateTaxRate;
+    return stateTaxes;
+  };
 
   // Fetch income data for "All Employers" on initial load
   const fetchAllEmployersData = (employersData) => {
@@ -63,12 +130,18 @@ export const FreelancerWidgets = () => {
             const filteredJobs = Object.entries(data)
               .filter(
                 ([jobId, job]) =>
-                  job.employerId === employerId && job.freelancerId === userId
+                  job.employerId === employerId &&
+                  Object.values(job.requests || {}).some(
+                    (request) =>
+                      request.freelancerId === userId &&
+                      request.status === "accepted"
+                  )
               )
               .map(([jobId, job]) => ({
                 jobId,
                 title: job.title,
               }));
+
             setJobs(filteredJobs);
           }
         });
@@ -141,20 +214,56 @@ export const FreelancerWidgets = () => {
 
   const filterIncomeByRange = (entries) => {
     const now = new Date();
-    return entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      if (totalIncomeView === "weekly") {
-        return entryDate >= new Date(now.setDate(now.getDate() - 7));
-      } else if (totalIncomeView === "monthly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
-      } else if (totalIncomeView === "quarterly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
-      } else if (totalIncomeView === "annually") {
-        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
+    let startDate = new Date();
+    let endDate = new Date();
+  
+    if (totalIncomeView === "weekly") {
+      const dayOfWeek = now.getDay();
+      startDate.setDate(now.getDate() - dayOfWeek); // Set to the most recent Sunday
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7); // Set to the following Sunday
+    } else if (totalIncomeView === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1); // First day of the current month
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First day of the next month
+    } else if (totalIncomeView === "quarterly") {
+      const currentMonth = now.getMonth();
+      if (currentMonth < 3) {
+        startDate = new Date(now.getFullYear(), 0, 1); // January 1st
+        endDate = new Date(now.getFullYear(), 3, 1); // April 1st
+      } else if (currentMonth < 6) {
+        startDate = new Date(now.getFullYear(), 3, 1); // April 1st
+        endDate = new Date(now.getFullYear(), 6, 1); // July 1st
+      } else if (currentMonth < 9) {
+        startDate = new Date(now.getFullYear(), 6, 1); // July 1st
+        endDate = new Date(now.getFullYear(), 9, 1); // October 1st
+      } else {
+        startDate = new Date(now.getFullYear(), 9, 1); // October 1st
+        endDate = new Date(now.getFullYear() + 1, 0, 1); // January 1st of the next year
       }
-      return true;
+    } else if (totalIncomeView === "annually") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear() + 1, 0, 1);
+    } else if (totalIncomeView === "all-time") {
+      // For all-time view, return all entries without date filtering
+      return entries;
+    }
+  
+    const filteredEntries = entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate < endDate;
     });
+  
+    console.log("Filtered Data for", totalIncomeView, ":", filteredEntries);
+    return filteredEntries;
   };
+  
+  
 
   const createIncomeChart = () => {
     if (chartInstance) {
@@ -228,6 +337,13 @@ export const FreelancerWidgets = () => {
         )
       : "N/A";
 
+  const totalIncomeDisplay =
+    totalIncome !== "N/A" ? `$${parseFloat(totalIncome).toFixed(2)}` : "N/A";
+  const estimatedTaxesDisplay =
+    estimatedTaxes !== "N/A"
+      ? `$${parseFloat(estimatedTaxes).toFixed(2)}`
+      : "N/A";
+
   return (
     <div className="freelancer-widgets">
       <div className="card">
@@ -265,34 +381,41 @@ export const FreelancerWidgets = () => {
       </div>
 
       <div className="card income-summary">
-        <h2>Income Summary</h2>
+        <h2>Financial Summary</h2>
         <div className="summary-info">
           <div className="summary-item">
-            <h3>Total Income</h3>
-            <p>${totalIncome}</p>
+            <h3>Taxable Income</h3>
+            <p>${calculateTotalIncome().toFixed(2)}</p>
+          </div>
+          <div className="summary-item">
+            <h3>Deductions</h3>
+            <p>${calculateTotalDeductions().toFixed(2)}</p>
+          </div>
+          <div className="summary-item">
+            <h3>Adjusted Gross Income</h3>
+            <p>${calculateAGI().toFixed(2)}</p>
           </div>
           <div className="summary-item">
             <h3>Estimated Taxes</h3>
-            <p style={{ color: "#e74c3c" }}>${estimatedTaxes}</p>
-          </div>
-          <div>
-            <label>View Range:</label>
-            <select
-              onChange={(e) => setTotalIncomeView(e.target.value)}
-              value={totalIncomeView}
-              className="custom-select"
-            >
-              <option value="weekly">This Week</option>
-              <option value="monthly">This Month</option>
-              <option value="quarterly">This Quarter</option>
-              <option value="annually">This Year</option>
-            </select>
+            <p style={{ color: "#e74c3c" }}>${estimateTaxes().toFixed(2)}</p>
           </div>
         </div>
       </div>
 
       <div className="card">
         <h2>Income Over Time</h2>
+        <select
+          onChange={(e) => setTotalIncomeView(e.target.value)}
+          value={totalIncomeView}
+          className="custom-select"
+        >
+          <option value="all-time">All Time</option>
+          <option value="weekly">This Week</option>
+          <option value="monthly">This Month</option>
+          <option value="quarterly">This Quarter</option>
+          <option value="annually">This Year</option>
+        </select>
+
         {incomeData.length > 0 ? (
           <canvas ref={chartRef}></canvas>
         ) : (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import jsPDF from "jspdf";
 import "./TaxSummary.css";
@@ -15,8 +15,10 @@ const TaxSummary = () => {
     lastname: "",
     address: "",
     profession: "",
+    state: "",
   });
   const [loading, setLoading] = useState(true);
+  const [taxRate, setTaxRate] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -27,14 +29,35 @@ const TaxSummary = () => {
         onValue(userRef, (snapshot) => {
           const data = snapshot.val();
           if (data) {
+            const userState = data.state || "";
             setProfileData({
               firstname: data.firstname || "",
               lastname: data.lastname || "",
               address: data.address || "",
               profession: data.profession || "",
+              state: userState,
               email: user.email,
             });
             setUserRole(data.role);
+
+            // Fetch tax rate for the user's state
+            if (userState) {
+              const stateRef = ref(db, `statesCollection/${userState}`);
+              get(stateRef)
+                .then((stateSnapshot) => {
+                  if (stateSnapshot.exists()) {
+                    const stateData = stateSnapshot.val();
+                    setTaxRate(stateData.taxRate || 0);
+                  } else {
+                    console.warn("No tax rate data available for this state.");
+                    setTaxRate(0);
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error fetching tax rate:", error);
+                  setTaxRate(0);
+                });
+            }
           }
           setLoading(false);
         });
@@ -73,50 +96,79 @@ const TaxSummary = () => {
       onValue(incomeRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          const incomeEntries = Object.values(data);
+          const incomeEntries = Object.values(data).map((entry) => ({
+            ...entry,
+            estimatedTax: entry.amount * taxRate,
+          }));
           setIncomeData(incomeEntries);
         } else {
           setIncomeData([]);
         }
       });
     }
-  }, [selectedEmployer]);
+  }, [selectedEmployer, taxRate]);
 
   const handleEmployerChange = (e) => {
     setSelectedEmployer(e.target.value);
   };
 
-  // Function to generate combined summary for all employers
-  const handleGenerateCombined = () => {
+  const handleGenerateCombined = async () => {
     const userId = auth.currentUser?.uid;
-
+  
     if (employers.length === 0) {
       alert("No employers linked to this freelancer.");
       return;
     }
-
-    let allIncomeData = [];
-
+  
+    let fetchPromises = [];
+  
+    // Create a promise for each employer's income data fetch
     employers.forEach((employer) => {
       const incomeRef = ref(
         db,
         `users/${userId}/linkedEmployers/${employer.id}/incomeEntries`
       );
-      onValue(incomeRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const incomeEntries = Object.values(data);
-          allIncomeData = [...allIncomeData, ...incomeEntries];
-        }
-
-        if (allIncomeData.length > 0) {
-          generatePDF(allIncomeData, "Combined Tax Summary");
-        } else {
-          alert("No income data available across employers.");
-        }
+  
+      let promise = new Promise((resolve, reject) => {
+        onValue(
+          incomeRef,
+          (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              // Map each entry to include the estimated tax using the dynamic tax rate
+              const incomeEntries = Object.values(data).map((entry) => ({
+                ...entry,
+                estimatedTax: entry.amount * taxRate, // Apply the fetched tax rate
+              }));
+              resolve(incomeEntries); // Resolve with the income entries
+            } else {
+              resolve([]); // Resolve with an empty array if no data
+            }
+          },
+          (error) => {
+            reject(error); // Reject the promise if there's an error
+          }
+        );
       });
+  
+      fetchPromises.push(promise);
     });
+  
+    try {
+      // Wait for all promises to resolve
+      let allIncomeData = (await Promise.all(fetchPromises)).flat(); // Combine all entries into one array
+  
+      if (allIncomeData.length > 0) {
+        generatePDF(allIncomeData, "Combined Tax Summary");
+      } else {
+        alert("No income data available across employers.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch income data:", error);
+      alert("An error occurred while fetching income data.");
+    }
   };
+  
 
   // Helper function to generate PDF for selected employer or combined
   const generatePDF = (incomeEntries, title) => {
@@ -153,7 +205,12 @@ const TaxSummary = () => {
     doc.line(40, startY + 5, pageWidth - 40, startY + 5);
 
     // Table Headers
-    const tableHeaders = ["Service", "Income Amount", "Estimated Tax"];
+    const tableHeaders = [
+      "Service",
+      "Income Amount",
+      "Estimated Tax",
+      "Entry Date",
+    ];
     const headerY = startY + 30;
     let rowY = headerY + 20;
 
@@ -173,6 +230,7 @@ const TaxSummary = () => {
         entry.service,
         `$${entry.amount.toFixed(2)}`,
         `$${entry.estimatedTax ? entry.estimatedTax.toFixed(2) : "N/A"}`,
+        entry.date,
       ];
 
       cells.forEach((cell, cellIndex) => {
@@ -288,6 +346,7 @@ const TaxSummary = () => {
                         <th>Service</th>
                         <th>Income Amount</th>
                         <th>Estimated Tax</th>
+                        <th>Entry Date</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -301,6 +360,7 @@ const TaxSummary = () => {
                               ? income.estimatedTax.toFixed(2)
                               : "N/A"}
                           </td>
+                          <td>{income.date}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -338,7 +398,6 @@ const TaxSummary = () => {
           <button
             onClick={handleGenerateCombined}
             className="generate-button-combined"
-            disabled={!selectedEmployer}
           >
             Generate Combined Summary
           </button>

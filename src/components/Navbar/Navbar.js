@@ -29,9 +29,6 @@ const Navbar = () => {
     if (notification.redirectUrl) {
       navigate(notification.redirectUrl);
     }
-
-    // Dismiss the notification after clicking
-    dismissNotification(notification.id);
   };
 
   // Dismiss a notification and remove it from Firebase

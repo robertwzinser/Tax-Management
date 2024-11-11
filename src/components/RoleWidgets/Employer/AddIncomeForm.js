@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, get, push } from "firebase/database";
 import { db, auth } from "../../../firebase"; // Adjust the import to your structure
 import { useNavigate } from "react-router-dom";
 import "../Freelancer/DailyIncome.css";
@@ -7,12 +7,14 @@ import "../Freelancer/DailyIncome.css";
 const AddIncomeForm = () => {
   const [freelancers, setFreelancers] = useState([]);
   const [selectedFreelancer, setSelectedFreelancer] = useState(""); // Selected freelancer
+  const [freelancerState, setFreelancerState] = useState(""); // State of the selected freelancer
   const [jobs, setJobs] = useState([]); // Jobs linked to the selected freelancer
   const [selectedJob, setSelectedJob] = useState(null); // Selected job
   const [service, setService] = useState(""); // Service description
   const [amount, setAmount] = useState(0); // Amount earned
   const [date, setDate] = useState(""); // Date of service
   const [estimatedTax, setEstimatedTax] = useState(0); // Estimated tax
+  const [taxRate, setTaxRate] = useState(0); // State-specific tax rate
   const navigate = useNavigate();
 
   // Fetch freelancers who are linked to the employer
@@ -31,6 +33,7 @@ const AddIncomeForm = () => {
             .map(([id, user]) => ({
               id,
               fullname: `${user.firstname} ${user.lastname}`,
+              state: user.state, 
             }));
           setFreelancers(freelancersData);
         }
@@ -38,27 +41,39 @@ const AddIncomeForm = () => {
     }
   }, []);
 
-  // Fetch jobs based on the selected freelancer
+  // Fetch the tax rate when a freelancer is selected
   useEffect(() => {
     if (selectedFreelancer) {
-      const jobsRef = ref(db, `jobs/`);
-      onValue(jobsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const filteredJobs = Object.entries(data).filter(
-            ([, job]) => job.freelancerId === selectedFreelancer
-          );
-          setJobs(filteredJobs);
-        }
-      });
+      const freelancer = freelancers.find(
+        (freelancer) => freelancer.id === selectedFreelancer
+      );
+      if (freelancer && freelancer.state) {
+        setFreelancerState(freelancer.state);
+        const stateRef = ref(db, `statesCollection/${freelancer.state}`);
+        get(stateRef)
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const stateData = snapshot.val();
+              setTaxRate(stateData.taxRate || 0);
+            } else {
+              console.warn("No tax rate data available for this state.");
+              setTaxRate(0); // Default to 0 if not found
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching tax rate:", error);
+            setTaxRate(0);
+          });
+      } else {
+        setTaxRate(0); // Default to 0 if no state found
+      }
     }
-  }, [selectedFreelancer]);
+  }, [selectedFreelancer, freelancers]);
 
-  // Handle real-time tax calculation (e.g., 20% estimate)
+  // Update the estimated tax whenever the amount or tax rate changes
   useEffect(() => {
-    const taxRate = 0.2;
     setEstimatedTax(amount * taxRate);
-  }, [amount]);
+  }, [amount, taxRate]);
 
   // Handle income submission
   const handleSubmit = async (e) => {

@@ -84,7 +84,7 @@ const FreelancerDetail = () => {
   }, [freelancerId, auth.currentUser.uid]); // Add employerId to the dependencies if it's dynamic
 
   useEffect(() => {
-    const expensesRef = ref(db, "expenseCollection");
+    const expensesRef = ref(db, "reimbursementCollection");
     onValue(expensesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -110,7 +110,7 @@ const FreelancerDetail = () => {
   }, [freelancerId]);
 
   const handleExpenseDecision = async (expenseId, decision) => {
-    const expenseRef = ref(db, `expenseCollection/${expenseId}`);
+    const expenseRef = ref(db, `reimbursementCollection/${expenseId}`);
     try {
       await update(expenseRef, { accepted: decision });
       alert(`Expense ${decision ? "accepted" : "rejected"} successfully!`);

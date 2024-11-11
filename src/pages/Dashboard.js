@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { ref, onValue, equalTo, query, orderByChild } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import "./Dashboard.css";
 import { EmployerWidgets } from "../components/RoleWidgets/Employer/EmployerWidgets";
 import { FreelancerWidgets } from "../components/RoleWidgets/Freelancer/FreelancerWidgets";
@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [expenseData, setExpenseData] = useState([]);
   const [userRole, setUserRole] = useState("");
   const [loading, setLoading] = useState(true);
+  const [employerNames, setEmployerNames] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -31,10 +33,29 @@ const Dashboard = () => {
               setBusinessName(
                 userData.businessName || "Business Name Not Available"
               );
+            } else if (userData.role === "Freelancer") {
+              // Fetch all linked employer names for the freelancer
+              const linkedEmployers = userData.linkedEmployers || {};
+              const employerIds = Object.keys(linkedEmployers);
+
+              if (employerIds.length > 0) {
+                const employerNamesTemp = [];
+                employerIds.forEach((id) => {
+                  const employerRef = ref(db, `users/${id}`);
+                  onValue(employerRef, (empSnapshot) => {
+                    const employerData = empSnapshot.val();
+                    if (employerData && employerData.businessName) {
+                      employerNamesTemp.push(employerData.businessName);
+                      setEmployerNames(employerNamesTemp); // Update state with collected employer names
+                    }
+                  });
+                });
+              }
             }
           }
         });
 
+        // Fetch tax data and income data
         const taxRef = ref(db, "taxData/" + userId);
         onValue(taxRef, (snapshot) => {
           setTaxData(snapshot.val() || {});
@@ -45,38 +66,6 @@ const Dashboard = () => {
           setIncomeData(snapshot.val() || []);
         });
 
-        const fetchdata = async () => {
-          try {
-            const expenseRef = ref(db, "expenseCollection");
-            const q = query(
-              expenseRef,
-              orderByChild("employer"),
-              equalTo(userId)
-            );
-            let data = {};
-
-            onValue(q, (snapshot) => {
-              data = snapshot.val();
-            });
-
-            if (!data) {
-              return []; // Return an empty array if there's no data
-            }
-
-            const expenseArray = Object.entries(data).map(([key, value]) => ({
-              id: key,
-              ...value,
-            }));
-
-            setExpenseData(
-              expenseArray.filter((expense) => expense.accepted === undefined)
-            );
-          } catch (error) {
-            console.error("Error fetching expenses:", error);
-          }
-        };
-
-        fetchdata();
         setLoading(false);
       } else {
         // User is signed out
@@ -90,18 +79,40 @@ const Dashboard = () => {
     return () => unsubscribe(); // Clean up subscription
   }, []);
 
+  // Set interval for carousel scrolling
+  useEffect(() => {
+    if (userRole === "Freelancer" && employerNames.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % employerNames.length);
+      }, 3000); // Change every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [userRole, employerNames]);
+
   if (loading) {
     return <h2>Loading...</h2>;
   }
 
   return (
     <div className="dashboard-container">
-      <div>
+      <div className="welcome-section">
         <h1>Welcome, {firstname}!</h1>
-        <p>Your role: {userRole}</p>
-        {userRole === "Employer" && <p>Your Business: {businessName}</p>}
+        {/* Styled role display */}
+        <div className={`role-tag ${userRole.toLowerCase()}`}>
+          {userRole}{" "}
+          {userRole === "Employer" ? (
+            `at ${businessName}`
+          ) : (
+            employerNames.length > 0 && (
+              <span className="carousel-scroll">
+                for {employerNames[currentIndex]}
+              </span>
+            )
+          )}
+        </div>
       </div>
-
+  
       <div className="dashboard-widgets">
         {userRole === "Freelancer" ? (
           <FreelancerWidgets taxData={taxData} incomeData={incomeData} />
@@ -111,7 +122,7 @@ const Dashboard = () => {
       </div>
     </div>
   );
+  
 };
 
 export default Dashboard;
-

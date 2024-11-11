@@ -131,7 +131,7 @@ const Reimbursements = () => {
             async () => {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-              const expenseRef = dbRef(db, "expenseCollection");
+              const expenseRef = dbRef(db, "reimbursementCollection");
               const newExpense = push(expenseRef);
               await set(newExpense, {
                 category: input.category,

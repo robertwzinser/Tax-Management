@@ -79,7 +79,8 @@ export const FreelancerWidgets = () => {
   }, []);
 
   const calculateTotalIncome = () => {
-    return incomeData.reduce((acc, curr) => acc + curr.amount, 0);
+    const filteredincomeData = filterIncomeByRange(incomeData);
+    return filteredincomeData.reduce((acc, curr) => acc + curr.amount, 0);
   };
 
   const calculateTotalDeductions = () => {

@@ -1,7 +1,5 @@
 
 import React, { useEffect, useState, useRef } from "react";
-
-
 import { Link, useNavigate } from "react-router-dom";
 import GlobalNotification from "../../components/Notifications/GlobalNotification";
 import { getDatabase, ref, remove, child, get } from "firebase/database";
@@ -9,12 +7,12 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import "./Navbar.css";
 import "../Notifications/Notifications.css";
-import JobNotifications from "../Notifications/JobNotifications";
+
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-
+  const [userId, setUserId]= useState ("")
   const navigate = useNavigate();
   const auth = getAuth();
   const db = getDatabase();
@@ -57,6 +55,13 @@ const Navbar = () => {
 
   // Handle notification click with redirection if redirectUrl is present
   const handleNotificationClick = (notification) => {
+    console.log(notification)
+  if(notification.type==="job"){
+    navigate("/job-board")
+  }
+  if(notification.type==="message"){
+    navigate("/inbox")
+  }
     // If there's a redirect URL in the notification, navigate to it
     if (notification.redirectUrl) {
       navigate(notification.redirectUrl);
@@ -196,7 +201,7 @@ const Navbar = () => {
 
 
           <div className={`notifications-dropdown ${showNotifications ? "show" : ""}`}>
-            {renderNotifications()}
+            {/* {renderNotifications()} */}
 
             {notifications.length > 0 ? (
               notifications.map((notif) => (
@@ -228,7 +233,7 @@ const Navbar = () => {
       </div>
 
       <GlobalNotification onNotificationsUpdate={handleNotificationsUpdate} />
-      <JobNotifications onNotificationsUpdate={handleNotificationsUpdate} />
+      {/* <JobNotifications onNotificationsUpdate={handleNotificationsUpdate} /> */}
     </nav>
   );
 };

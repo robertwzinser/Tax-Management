@@ -7,7 +7,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import "./Navbar.css";
 import "../Notifications/Notifications.css";
-import JobNotifications from "../Notifications/JobNotifications";
+
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState([]);

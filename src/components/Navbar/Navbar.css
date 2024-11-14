@@ -109,3 +109,25 @@
   justify-content: center;
   min-width: 16px;
 }
+.notification-job-item {
+  padding: 10px;
+  background-color: #f0f8ff;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.notification-job-item strong {
+  color: #333;
+}
+
+.notification-job-item div {
+  margin-bottom: 5px;
+}
+
+.dismiss-job-notif-btn {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 1rem;
+  cursor: pointer;
+}

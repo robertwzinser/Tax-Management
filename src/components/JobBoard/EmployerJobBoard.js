@@ -145,7 +145,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
         console.log(child.key)         
       const notificationRef = ref(db, `notifications/${child.key}`);
       const notification = {
-        message: `new job posted `,
+        message: `New Job Posted: ${newJob.title}`, // Inserts the job title dynamically
         timestamp: Date.now(),
         type: "job",
       };

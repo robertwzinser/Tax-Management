@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, push, set, get } from "firebase/database";
 import { auth, db } from "../../firebase";
 import "./Messaging.css";
 
@@ -10,16 +10,13 @@ const Messaging = () => {
   const [selectedFreelancer, setSelectedFreelancer] = useState(null);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const userId = auth.currentUser?.uid;
   const [userRole, setUserRole] = useState("");
+  const [blockedUsers, setBlockedUsers] = useState({});
+  const [allBlockedUsers, setAllBlockedUsers] = useState([]);
+  const [showRelationshipModal, setShowRelationshipModal] = useState(false);
 
-  // Utility function to format timestamps
-  const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
+  const userId = auth.currentUser?.uid;
 
-  // Fetch user role (freelancer or employer)
   useEffect(() => {
     const userRef = ref(db, `users/${userId}`);
     onValue(userRef, (snapshot) => {
@@ -30,120 +27,180 @@ const Messaging = () => {
     });
   }, [userId]);
 
-  // Fetch employers or freelancers based on user role
+  useEffect(() => {
+    const blockedUsersRef = ref(db, `users/${userId}/blockedUsers`);
+    onValue(blockedUsersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) setBlockedUsers(data);
+    });
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchBlockedUsersDetails = async () => {
+      const blockedDetails = [];
+      for (const blockedUserId in blockedUsers) {
+        if (blockedUsers[blockedUserId]?.blocked) {
+          const userRef = ref(db, `users/${blockedUserId}`);
+          const snapshot = await get(userRef);
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const userDetail = {
+              userId: blockedUserId,
+              name: `${userData.firstname || ""} ${userData.lastname || ""}`.trim() || userData.name || "Unknown User",
+            };
+  
+            // Prevent duplicates
+            if (!blockedDetails.some((user) => user.userId === blockedUserId)) {
+              blockedDetails.push(userDetail);
+            }
+          }
+        }
+      }
+      setAllBlockedUsers(blockedDetails);
+    };
+  
+    if (Object.keys(blockedUsers).length > 0) {
+      fetchBlockedUsersDetails();
+    } else {
+      setAllBlockedUsers([]);
+    }
+  }, [blockedUsers]);
+  
+
   useEffect(() => {
     if (userRole === "Freelancer") {
       const freelancerRef = ref(db, `users/${userId}/linkedEmployers`);
       onValue(freelancerRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setEmployers(Object.entries(data));
-        }
+        const data = snapshot.val() || {};
+        const filteredEmployers = Object.entries(data)
+          .filter(([id]) => !(blockedUsers[id]?.blocked))
+          .map(([id, employer]) => ({
+            employerId: id,
+            employerName:
+              `${employer.firstname || ""} ${
+                employer.lastname || ""
+              }`.trim() || employer.name || "Employer",
+          }));
+        setEmployers(filteredEmployers);
       });
     } else if (userRole === "Employer") {
-      const employerRef = ref(db, `users`);
+      const employerRef = ref(db, `users/${userId}/acceptedFreelancers`);
       onValue(employerRef, (snapshot) => {
-        const users = snapshot.val();
-        const freelancersList = Object.entries(users)
-          .filter(([id, user]) => user.role === "Freelancer")
-          .map(([id, freelancerData]) => ({
+        const data = snapshot.val() || {};
+        const filteredFreelancers = Object.entries(data)
+          .filter(([id]) => !(blockedUsers[id]?.blocked))
+          .map(([id, freelancer]) => ({
             freelancerId: id,
-            freelancerName: `${freelancerData.firstname} ${freelancerData.lastname}`,
+            freelancerName:
+              `${freelancer.firstname || ""} ${
+                freelancer.lastname || ""
+              }`.trim() || freelancer.name || "Freelancer",
           }));
-        setFreelancers(freelancersList);
+        setFreelancers(filteredFreelancers);
       });
     }
-  }, [userRole, userId]);
+  }, [userRole, userId, blockedUsers]);
 
-  // Fetch messages for the selected employer or freelancer
   useEffect(() => {
     if (selectedEmployer || selectedFreelancer) {
-      setMessages([]); // Reset messages when selecting a new employer or freelancer
-
-      let messagesRef;
-      if (userRole === "Freelancer") {
-        messagesRef = ref(db, `messages/${selectedEmployer}/${userId}`);
-      } else if (userRole === "Employer") {
-        messagesRef = ref(db, `messages/${userId}/${selectedFreelancer}`);
-      }
+      setMessages([]);
+      const messagesRef =
+        userRole === "Freelancer"
+          ? ref(db, `messages/${selectedEmployer}/${userId}`)
+          : ref(db, `messages/${userId}/${selectedFreelancer}`);
 
       onValue(messagesRef, (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          setMessages(Object.values(data));
-        } else {
-          setMessages([]);
-        }
+        if (data) setMessages(Object.values(data));
       });
     }
   }, [selectedEmployer, selectedFreelancer, userRole, userId]);
 
-  // Handle sending a message and adding a notification for the recipient
   const handleSendMessage = async () => {
     if (selectedEmployer || selectedFreelancer) {
-      let messageRef, notificationRef, recipientId, recipientName;
-
-      // Define paths based on user role
-      if (userRole === "Freelancer") {
-        messageRef = ref(db, `messages/${selectedEmployer}/${userId}`);
-        notificationRef = ref(db, `notifications/${selectedEmployer}`);
-        recipientId = selectedEmployer;
-        recipientName = employers.find(([id]) => id === selectedEmployer)?.[1]
-          ?.name;
-      } else if (userRole === "Employer") {
-        messageRef = ref(db, `messages/${userId}/${selectedFreelancer}`);
-        notificationRef = ref(db, `notifications/${selectedFreelancer}`);
-        recipientId = selectedFreelancer;
-        recipientName = freelancers.find(
-          ({ freelancerId }) => freelancerId === selectedFreelancer
-        )?.freelancerName;
+      const recipientId =
+        userRole === "Freelancer" ? selectedEmployer : selectedFreelancer;
+  
+      // Check if messaging is blocked
+      const recipientBlockedByCurrentUser = blockedUsers[recipientId]?.blocked;
+  
+      let currentUserBlockedByRecipient = false;
+      const recipientBlockedUsersRef = ref(db, `users/${recipientId}/blockedUsers/${userId}`);
+      const snapshot = await get(recipientBlockedUsersRef);
+      if (snapshot.exists()) {
+        currentUserBlockedByRecipient = snapshot.val()?.blocked;
       }
-
+  
+      if (recipientBlockedByCurrentUser || currentUserBlockedByRecipient) {
+        alert("You cannot send messages because one of you has blocked the other.");
+        return;
+      }
+  
+      const messageRef =
+        userRole === "Freelancer"
+          ? ref(db, `messages/${selectedEmployer}/${userId}`)
+          : ref(db, `messages/${userId}/${selectedFreelancer}`);
+  
       const newMessage = {
         senderId: userId,
         text: message,
         timestamp: Date.now(),
       };
-
-      // Fetch the current user's name
-      const userRef = ref(db, `users/${userId}`);
-      let senderName = "User";
-      await new Promise((resolve) => {
-        onValue(
-          userRef,
-          (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-              senderName = `${userData.firstname} ${userData.lastname}`;
-            }
-            resolve();
-          },
-          { onlyOnce: true }
-        );
-      });
-
-      const notification = {
-        message: `New message from ${senderName}`,
-        fromId: userId,
-        fromName: senderName,
-        toId: recipientId,
-        toName: recipientName,
-        timestamp: Date.now(),
-        type: "message",
-      };
-
+  
       try {
-        // Push the new message to the database
         await push(messageRef, newMessage);
-
-        // Push the notification to the recipient's notifications
-        await push(notificationRef, notification);
-
-        // Clear the message input field
         setMessage("");
       } catch (error) {
         console.error("Error sending message:", error.message);
       }
+    }
+  };
+  
+  
+
+  const handleBlockUser = async (otherUserId) => {
+    try {
+      const blockRef = ref(db, `users/${userId}/blockedUsers/${otherUserId}`);
+      await set(blockRef, { blocked: true });
+  
+      // Fetch user details after blocking
+      const userRef = ref(db, `users/${otherUserId}`);
+      const snapshot = await get(userRef);
+  
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+  
+        // Dynamically update the allBlockedUsers state
+        setAllBlockedUsers((prevBlockedUsers) => [
+          ...prevBlockedUsers.filter((user) => user.userId !== otherUserId), // Prevent duplicates
+          {
+            userId: otherUserId,
+            name: `${userData.firstname || ""} ${userData.lastname || ""}`.trim() || userData.name || "Unknown User",
+          },
+        ]);
+      }
+  
+      alert("User has been blocked successfully.");
+    } catch (error) {
+      console.error("Error blocking user:", error.message);
+      alert("Failed to block the user. Please try again.");
+    }
+  };
+  
+
+  const handleUnblockUser = async (otherUserId) => {
+    try {
+      const blockRef = ref(db, `users/${userId}/blockedUsers/${otherUserId}`);
+      await set(blockRef, { blocked: false });
+
+      setAllBlockedUsers((prevBlockedUsers) =>
+        prevBlockedUsers.filter((user) => user.userId !== otherUserId)
+      );
+
+      alert("User has been unblocked successfully.");
+    } catch (error) {
+      console.error("Error unblocking user:", error.message);
+      alert("Failed to unblock the user. Please try again.");
     }
   };
 
@@ -152,75 +209,97 @@ const Messaging = () => {
       <h2 className="header">Inbox</h2>
       <div className="selection-section">
         {userRole === "Freelancer" && (
-          <>
-            <label>Employer:</label>
-            <select
-              onChange={(e) => setSelectedEmployer(e.target.value)}
-              value={selectedEmployer || ""}
-            >
-              <option value="" disabled>
-                Select Employer
+          <select
+            onChange={(e) => setSelectedEmployer(e.target.value)}
+            value={selectedEmployer || ""}
+          >
+            <option value="" disabled>
+              Select Employer
+            </option>
+            {employers.map(({ employerId, employerName }) => (
+              <option key={employerId} value={employerId}>
+                {employerName}
               </option>
-              {employers.map(([id, employer]) => (
-                <option key={id} value={id}>
-                  {employer.name}
-                </option>
-              ))}
-            </select>
-          </>
+            ))}
+          </select>
         )}
         {userRole === "Employer" && (
-          <>
-            <label>Freelancer:</label>
-            <select
-              onChange={(e) => setSelectedFreelancer(e.target.value)}
-              value={selectedFreelancer || ""}
-            >
-              <option value="" disabled>
-                Select Freelancer
+          <select
+            onChange={(e) => setSelectedFreelancer(e.target.value)}
+            value={selectedFreelancer || ""}
+          >
+            <option value="" disabled>
+              Select Freelancer
+            </option>
+            {freelancers.map(({ freelancerId, freelancerName }) => (
+              <option key={freelancerId} value={freelancerId}>
+                {freelancerName}
               </option>
-              {freelancers.map(({ freelancerId, freelancerName }) => (
-                <option key={freelancerId} value={freelancerId}>
-                  {freelancerName}
-                </option>
-              ))}
-            </select>
-          </>
+            ))}
+          </select>
         )}
       </div>
 
       <div className="message-list">
         {messages.length > 0 ? (
           messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`message-item ${
-                msg.senderId === userId ? "sent" : "received"
-              }`}
-            >
+            <div key={idx} className={`message-item ${msg.senderId === userId ? "sent" : "received"}`}>
               <p>{msg.text}</p>
-              <span className="timestamp" style={{ fontSize: "10px" }}>
-                {new Date(msg.timestamp).toLocaleString()}
-              </span>
+              <span className="timestamp">{new Date(msg.timestamp).toLocaleString()}</span>
             </div>
           ))
         ) : (
-          <p className="no-messages">No messages yet.</p>
+          <p>No messages yet.</p>
         )}
       </div>
 
       <textarea
-        placeholder="Type your message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type your message..."
       />
-      <button
-        className="job-button"
-        onClick={handleSendMessage}
-        disabled={!selectedEmployer && !selectedFreelancer}
-      >
+      <button onClick={handleSendMessage} disabled={!message}>
         Send
       </button>
+
+      <button onClick={() => setShowRelationshipModal(true)}>
+        Manage Relationships
+      </button>
+
+      {showRelationshipModal && (
+        <div className="modal">
+          <h3>Manage Relationships</h3>
+          <ul>
+            {allBlockedUsers.length > 0 ? (
+              allBlockedUsers.map((user) => (
+                <li key={user.userId}>
+                  <p>{user.name}</p>
+                  <button onClick={() => handleUnblockUser(user.userId)}>Unblock</button>
+                </li>
+              ))
+            ) : (
+              <p>No blocked users.</p>
+            )}
+          </ul>
+          <ul>
+            {(userRole === "Freelancer" ? employers : freelancers).map((user) => (
+              <li key={user.employerId || user.freelancerId}>
+                <p>{user.employerName || user.freelancerName}</p>
+                {blockedUsers[user.employerId || user.freelancerId]?.blocked ? (
+                  <button onClick={() => handleUnblockUser(user.employerId || user.freelancerId)}>
+                    Unblock
+                  </button>
+                ) : (
+                  <button onClick={() => handleBlockUser(user.employerId || user.freelancerId)}>
+                    Block
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <button onClick={() => setShowRelationshipModal(false)}>Close</button>
+        </div>
+      )}
     </div>
   );
 };

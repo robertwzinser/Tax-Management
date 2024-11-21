@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import { auth, db } from "../../../firebase";
 import { Link } from "react-router-dom";
 import Chart from "chart.js/auto";
@@ -17,6 +17,35 @@ export const FreelancerWidgets = () => {
   const [chartInstance, setChartInstance] = useState(null);
   const [deductions, setDeductions] = useState([]);
   const [stateTaxRate, setStateTaxRate] = useState(0);
+
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+  
+      const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
+      const snapshot = await get(linkedEmployersRef);
+      const linkedEmployers = snapshot.val();
+  
+      if (linkedEmployers) {
+        const employersData = [];
+        for (const [id, employer] of Object.entries(linkedEmployers)) {
+          const employerRef = ref(db, `users/${id}`);
+          const empSnapshot = await get(employerRef);
+          const employerData = empSnapshot.val();
+  
+          // Check if the employer has blocked the freelancer
+          const isBlocked = employerData?.blockedUsers?.[userId]?.blocked;
+          if (!isBlocked) {
+            employersData.push({ id, businessName: employer.name });
+          }
+        }
+        setEmployers(employersData); // Update state with filtered employers
+      }
+    };
+  
+    fetchEmployers();
+  }, []);
 
   useEffect(() => {
     const user = auth.currentUser;

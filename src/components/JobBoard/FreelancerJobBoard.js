@@ -1,15 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { ref, set, get, push } from "firebase/database";
+import { ref, set, get, push, onValue } from "firebase/database";
 import { auth, db } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import "./JobBoard.css";
 
 const FreelancerJobBoard = ({ jobs, setMessages }) => {
   const [employerDetails, setEmployerDetails] = useState({});
+  const [filteredJobs, setFilteredJobs] = useState([]); // Jobs excluding those from employers who blocked the freelancer
+  const [blockedByEmployers, setBlockedByEmployers] = useState([]); // Employers that blocked the freelancer
   const navigate = useNavigate();
 
+  // Fetch employers that have blocked the freelancer
   useEffect(() => {
-    // Extract unique employer IDs from jobs
+    const fetchEmployersBlockingFreelancer = async () => {
+      const freelancerId = auth.currentUser?.uid; // Current freelancer's UID
+      if (!freelancerId) return;
+
+      const employersRef = ref(db, "users");
+      const snapshot = await get(employersRef);
+
+      if (snapshot.exists()) {
+        const blockedEmployers = Object.entries(snapshot.val())
+          .filter(([employerId, employerData]) =>
+            employerData.blockedUsers?.[freelancerId]?.blocked
+          )
+          .map(([employerId]) => employerId);
+
+        setBlockedByEmployers(blockedEmployers);
+      }
+    };
+
+    fetchEmployersBlockingFreelancer();
+  }, []);
+
+  // Filter jobs based on employers that blocked the freelancer
+  useEffect(() => {
+    const filterJobs = () => {
+      const filtered = jobs.filter(
+        ([_, job]) => !blockedByEmployers.includes(job.employerId)
+      );
+      setFilteredJobs(filtered);
+    };
+
+    if (jobs.length > 0 && blockedByEmployers.length >= 0) {
+      filterJobs();
+    }
+  }, [jobs, blockedByEmployers]);
+
+  // Fetch employer details
+  useEffect(() => {
     const employerIds = [...new Set(jobs.map(([_, job]) => job.employerId))];
     const fetchEmployerDetails = async () => {
       let details = {};
@@ -17,7 +56,6 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
         const empRef = ref(db, `users/${id}`);
         const snapshot = await get(empRef);
         if (snapshot.exists()) {
-          // Employer's business name is stored under 'businessName'
           details[id] = snapshot.val().businessName || "Unknown Business";
         }
       }
@@ -27,7 +65,7 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
     if (employerIds.length > 0) {
       fetchEmployerDetails();
     }
-  }, [jobs]); // Depend on jobs
+  }, [jobs]);
 
   const handleViewProfile = (userId) => {
     navigate(`/profile/${userId}`);
@@ -75,8 +113,8 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
     <div>
       <h1>Available Jobs</h1>
       <div className="job-list">
-        {jobs.length > 0 ? (
-          jobs.map(([id, job]) => {
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map(([id, job]) => {
             const hasRequested =
               job.requests &&
               job.requests[auth.currentUser?.uid] &&

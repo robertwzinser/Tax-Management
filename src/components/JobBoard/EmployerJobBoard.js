@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ref, push, update, get, onValue } from "firebase/database"; // Firebase DB functions
+import { ref, push, update, get, onValue, query, orderByChild, equalTo } from "firebase/database"; // Firebase DB functions
 import { auth, db } from "../../firebase";
 import "./JobBoard.css";
 import { useNavigate } from "react-router-dom";
+import { equal } from "assert";
 
 const EmployerJobBoard = ({ jobs, setJobs }) => {
   const [newJob, setNewJob] = useState({
@@ -15,7 +16,6 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
   const [currentJobId, setCurrentJobId] = useState(null);
   const [jobRequests, setJobRequests] = useState([]); // Store requested jobs
   const navigate = useNavigate();
-
   useEffect(() => {
     // Fetch jobs with "requested" status for review
     const jobRequestsRef = ref(db, "jobs/");
@@ -136,7 +136,30 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       // Push the new job entry to Firebase
       await push(jobRef, newJobEntry);
       alert("Job posted successfully!");
-
+      
+      // Define paths based on user role
+      const usersref = ref (db, "users")
+      const userfilter = query (usersref, orderByChild("role"), equalTo ("Freelancer"))
+      onValue(userfilter, (snapshot) => {
+        snapshot.forEach((child) =>{
+        console.log(child.key)         
+      const notificationRef = ref(db, `notifications/${child.key}`);
+      const notification = {
+        message: `New Job Posted: ${newJob.title}`, // Inserts the job title dynamically
+        timestamp: Date.now(),
+        type: "job",
+      };
+      try {     
+        // Push the notification to the recipient's notifications
+       push(notificationRef, notification);
+      } catch (error) {
+        console.error("Error sending message:", error.message);
+      }
+        })
+        
+      })
+    
+        
       // Reset the job form
       setNewJob({
         title: "",

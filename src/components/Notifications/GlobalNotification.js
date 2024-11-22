@@ -10,13 +10,14 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
   useEffect(() => {
     if (!userId) return;
 
+
     console.log(`Listening to notifications for userId: ${userId}`); // Debug log for userId
 
     // Listen only to the logged-in user's notifications
     const notificationsRef = ref(db, `notifications/${userId}`);
-
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       const data = snapshot.val();
+      console.log(data)
       const notificationsList = data
         ? Object.entries(data).map(([id, notification]) => ({
             id,
@@ -49,3 +50,4 @@ const GlobalNotification = ({ onNotificationsUpdate }) => {
 };
 
 export default GlobalNotification;
+

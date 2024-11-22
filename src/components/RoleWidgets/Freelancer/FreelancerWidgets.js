@@ -79,7 +79,8 @@ export const FreelancerWidgets = () => {
   }, []);
 
   const calculateTotalIncome = () => {
-    return incomeData.reduce((acc, curr) => acc + curr.amount, 0);
+    const filteredincomeData = filterIncomeByRange(incomeData);
+    return filteredincomeData.reduce((acc, curr) => acc + curr.amount, 0);
   };
 
   const calculateTotalDeductions = () => {
@@ -213,22 +214,56 @@ export const FreelancerWidgets = () => {
 
   const filterIncomeByRange = (entries) => {
     const now = new Date();
-    return entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      if (totalIncomeView === "weekly") {
-        return entryDate >= new Date(now.setDate(now.getDate() - 7));
-      } else if (totalIncomeView === "monthly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
-      } else if (totalIncomeView === "quarterly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
-      } else if (totalIncomeView === "annually") {
-        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
-      } else if (totalIncomeView === "all-time") {
-        return true;
+    let startDate = new Date();
+    let endDate = new Date();
+  
+    if (totalIncomeView === "weekly") {
+      const dayOfWeek = now.getDay();
+      startDate.setDate(now.getDate() - dayOfWeek); // Set to the most recent Sunday
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7); // Set to the following Sunday
+    } else if (totalIncomeView === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1); // First day of the current month
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First day of the next month
+    } else if (totalIncomeView === "quarterly") {
+      const currentMonth = now.getMonth();
+      if (currentMonth < 3) {
+        startDate = new Date(now.getFullYear(), 0, 1); // January 1st
+        endDate = new Date(now.getFullYear(), 3, 1); // April 1st
+      } else if (currentMonth < 6) {
+        startDate = new Date(now.getFullYear(), 3, 1); // April 1st
+        endDate = new Date(now.getFullYear(), 6, 1); // July 1st
+      } else if (currentMonth < 9) {
+        startDate = new Date(now.getFullYear(), 6, 1); // July 1st
+        endDate = new Date(now.getFullYear(), 9, 1); // October 1st
+      } else {
+        startDate = new Date(now.getFullYear(), 9, 1); // October 1st
+        endDate = new Date(now.getFullYear() + 1, 0, 1); // January 1st of the next year
       }
-      return true;
+    } else if (totalIncomeView === "annually") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear() + 1, 0, 1);
+    } else if (totalIncomeView === "all-time") {
+      // For all-time view, return all entries without date filtering
+      return entries;
+    }
+  
+    const filteredEntries = entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate < endDate;
     });
+  
+    console.log("Filtered Data for", totalIncomeView, ":", filteredEntries);
+    return filteredEntries;
   };
+  
+  
 
   const createIncomeChart = () => {
     if (chartInstance) {

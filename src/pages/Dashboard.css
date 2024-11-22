@@ -61,3 +61,34 @@ canvas {
 p {
   text-align: center; /* Centered paragraph text */
 }
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.role-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  font-size: .7em;
+  border-radius: 15px;
+  border: 1px solid transparent;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.role-tag.freelancer {
+  background-color: #295442; 
+  border-color: #31634e;
+}
+
+.role-tag.employer {
+  background-color: #3e66a3; 
+  border-color: #5174a9;
+}
+
+.role-tag.no-role {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+

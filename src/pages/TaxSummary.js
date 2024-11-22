@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, get } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import jsPDF from "jspdf";
 import "./TaxSummary.css";
@@ -15,8 +15,10 @@ const TaxSummary = () => {
     lastname: "",
     address: "",
     profession: "",
+    state: "",
   });
   const [loading, setLoading] = useState(true);
+  const [taxRate, setTaxRate] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -27,14 +29,35 @@ const TaxSummary = () => {
         onValue(userRef, (snapshot) => {
           const data = snapshot.val();
           if (data) {
+            const userState = data.state || "";
             setProfileData({
               firstname: data.firstname || "",
               lastname: data.lastname || "",
               address: data.address || "",
               profession: data.profession || "",
+              state: userState,
               email: user.email,
             });
             setUserRole(data.role);
+
+            // Fetch tax rate for the user's state
+            if (userState) {
+              const stateRef = ref(db, `statesCollection/${userState}`);
+              get(stateRef)
+                .then((stateSnapshot) => {
+                  if (stateSnapshot.exists()) {
+                    const stateData = stateSnapshot.val();
+                    setTaxRate(stateData.taxRate || 0);
+                  } else {
+                    console.warn("No tax rate data available for this state.");
+                    setTaxRate(0);
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error fetching tax rate:", error);
+                  setTaxRate(0);
+                });
+            }
           }
           setLoading(false);
         });
@@ -42,7 +65,6 @@ const TaxSummary = () => {
         if (userRole === "Freelancer") {
           const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
           onValue(linkedEmployersRef, (snapshot) => {
-            console.log("Employers Data:", employers);
             const data = snapshot.val();
             if (data) {
               const employersData = Object.entries(data).map(
@@ -74,14 +96,17 @@ const TaxSummary = () => {
       onValue(incomeRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          const incomeEntries = Object.values(data);
+          const incomeEntries = Object.values(data).map((entry) => ({
+            ...entry,
+            estimatedTax: entry.amount * taxRate,
+          }));
           setIncomeData(incomeEntries);
         } else {
           setIncomeData([]);
         }
       });
     }
-  }, [selectedEmployer]);
+  }, [selectedEmployer, taxRate]);
 
   const handleEmployerChange = (e) => {
     setSelectedEmployer(e.target.value);
@@ -89,28 +114,33 @@ const TaxSummary = () => {
 
   const handleGenerateCombined = async () => {
     const userId = auth.currentUser?.uid;
-
+  
     if (employers.length === 0) {
       alert("No employers linked to this freelancer.");
       return;
     }
-
+  
     let fetchPromises = [];
-
+  
     // Create a promise for each employer's income data fetch
     employers.forEach((employer) => {
       const incomeRef = ref(
         db,
         `users/${userId}/linkedEmployers/${employer.id}/incomeEntries`
       );
-
+  
       let promise = new Promise((resolve, reject) => {
         onValue(
           incomeRef,
           (snapshot) => {
             const data = snapshot.val();
             if (data) {
-              resolve(Object.values(data)); // Resolve with the income entries
+              // Map each entry to include the estimated tax using the dynamic tax rate
+              const incomeEntries = Object.values(data).map((entry) => ({
+                ...entry,
+                estimatedTax: entry.amount * taxRate, // Apply the fetched tax rate
+              }));
+              resolve(incomeEntries); // Resolve with the income entries
             } else {
               resolve([]); // Resolve with an empty array if no data
             }
@@ -120,14 +150,14 @@ const TaxSummary = () => {
           }
         );
       });
-
+  
       fetchPromises.push(promise);
     });
-
+  
     try {
       // Wait for all promises to resolve
       let allIncomeData = (await Promise.all(fetchPromises)).flat(); // Combine all entries into one array
-
+  
       if (allIncomeData.length > 0) {
         generatePDF(allIncomeData, "Combined Tax Summary");
       } else {
@@ -138,6 +168,7 @@ const TaxSummary = () => {
       alert("An error occurred while fetching income data.");
     }
   };
+  
 
   // Helper function to generate PDF for selected employer or combined
   const generatePDF = (incomeEntries, title) => {

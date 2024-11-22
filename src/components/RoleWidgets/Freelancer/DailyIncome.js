@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, get, push } from "firebase/database";
 import { auth, db } from "../../../firebase";
 import { useNavigate } from "react-router-dom";
 import "./DailyIncome.css";
@@ -13,6 +13,7 @@ const DailyIncome = () => {
   const [amount, setAmount] = useState(0);
   const [date, setDate] = useState("");
   const [estimatedTax, setEstimatedTax] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,33 @@ const DailyIncome = () => {
           setEmployers(employersData);
         }
       });
+
+      // Fetch the state of the logged-in freelancer and get their tax rate
+      const freelancerRef = ref(db, `users/${userId}`);
+      onValue(freelancerRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.state) {
+          const freelancerState = data.state;
+          const stateRef = ref(db, `statesCollection/${freelancerState}`);
+          get(stateRef)
+            .then((stateSnapshot) => {
+              if (stateSnapshot.exists()) {
+                const stateData = stateSnapshot.val();
+                setTaxRate(stateData.taxRate || 0);
+              } else {
+                console.warn("No tax rate data available for this state.");
+                setTaxRate(0); // Default to 0 if not found
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching tax rate:", error);
+              setTaxRate(0); // Handle error gracefully
+            });
+        } else {
+          console.warn("Freelancer's state not found.");
+          setTaxRate(0); // Default to 0 if no state is found
+        }
+      });
     }
   }, []);
 
@@ -39,13 +67,16 @@ const DailyIncome = () => {
       onValue(jobsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          const filteredJobs = Object.entries(data).filter(([id, job]) => (
-            job.employerId === selectedClient &&
-            job.requests &&
-            Object.values(job.requests).some(
-              request => request.freelancerId === userId && request.status === "accepted"
-            )
-          ));
+          const filteredJobs = Object.entries(data).filter(
+            ([id, job]) =>
+              job.employerId === selectedClient &&
+              job.requests &&
+              Object.values(job.requests).some(
+                (request) =>
+                  request.freelancerId === userId &&
+                  request.status === "accepted"
+              )
+          );
           setJobs(filteredJobs.map(([id, job]) => ({ ...job, jobId: id })));
         }
       });
@@ -54,10 +85,10 @@ const DailyIncome = () => {
     }
   }, [selectedClient]);
 
+  // Update the estimated tax whenever the amount or tax rate changes
   useEffect(() => {
-    const taxRate = 0.2;
     setEstimatedTax(parseFloat((amount * taxRate).toFixed(2))); // Calculate and round to 2 decimal places
-  }, [amount]);
+  }, [amount, taxRate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,15 +108,23 @@ const DailyIncome = () => {
       service,
       amount: parseFloat(amount), // Ensure amount is a float
       date,
-      estimatedTax: parseFloat(estimatedTax) // Ensure estimatedTax is a float
+      estimatedTax: parseFloat(estimatedTax), // Ensure estimatedTax is a float
     };
 
-    if (new Date(date) < new Date(selectedJob.startDate) || new Date(date) > new Date(selectedJob.endDate)) {
-      alert("Income entry date must be within the job's start and end date range.");
+    if (
+      new Date(date) < new Date(selectedJob.startDate) ||
+      new Date(date) > new Date(selectedJob.endDate)
+    ) {
+      alert(
+        "Income entry date must be within the job's start and end date range."
+      );
       return;
     }
 
-    const incomeRef = ref(db, `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`);
+    const incomeRef = ref(
+      db,
+      `users/${userId}/linkedEmployers/${selectedClient}/incomeEntries`
+    );
     try {
       await push(incomeRef, incomeEntry);
       alert("Daily income added successfully!");

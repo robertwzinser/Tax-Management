@@ -84,7 +84,7 @@ const FreelancerDetail = () => {
   }, [freelancerId, auth.currentUser.uid]); // Add employerId to the dependencies if it's dynamic
 
   useEffect(() => {
-    const expensesRef = ref(db, "expenseCollection");
+    const expensesRef = ref(db, "reimbursementCollection");
     onValue(expensesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -110,7 +110,7 @@ const FreelancerDetail = () => {
   }, [freelancerId]);
 
   const handleExpenseDecision = async (expenseId, decision) => {
-    const expenseRef = ref(db, `expenseCollection/${expenseId}`);
+    const expenseRef = ref(db, `reimbursementCollection/${expenseId}`);
     try {
       await update(expenseRef, { accepted: decision });
       alert(`Expense ${decision ? "accepted" : "rejected"} successfully!`);
@@ -137,21 +137,53 @@ const FreelancerDetail = () => {
 
   const filterIncomeByRange = (entries) => {
     const now = new Date();
-    return entries.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      if (viewRange === "weekly") {
-        return entryDate >= new Date(now.setDate(now.getDate() - 7));
-      } else if (viewRange === "monthly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 1));
-      } else if (viewRange === "quarterly") {
-        return entryDate >= new Date(now.setMonth(now.getMonth() - 3));
-      } else if (viewRange === "annually") {
-        return entryDate >= new Date(now.setFullYear(now.getFullYear() - 1));
-      } else if (viewRange === "all-time") {
-        return true;
+    let startDate = new Date();
+    let endDate = new Date();
+  
+    if (viewRange === "weekly") {
+      const dayOfWeek = now.getDay();
+      startDate.setDate(now.getDate() - dayOfWeek); // Set to the most recent Sunday
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7); // Set to the following Sunday
+    } else if (viewRange === "monthly") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1); // First day of the current month
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1); // First day of the next month
+    } else if (viewRange === "quarterly") {
+      const currentMonth = now.getMonth();
+      if (currentMonth < 3) {
+        startDate = new Date(now.getFullYear(), 0, 1); // January 1st
+        endDate = new Date(now.getFullYear(), 3, 1); // April 1st
+      } else if (currentMonth < 6) {
+        startDate = new Date(now.getFullYear(), 3, 1); // April 1st
+        endDate = new Date(now.getFullYear(), 6, 1); // July 1st
+      } else if (currentMonth < 9) {
+        startDate = new Date(now.getFullYear(), 6, 1); // July 1st
+        endDate = new Date(now.getFullYear(), 9, 1); // October 1st
+      } else {
+        startDate = new Date(now.getFullYear(), 9, 1); // October 1st
+        endDate = new Date(now.getFullYear() + 1, 0, 1); // January 1st of the next year
       }
-      return true;
+    } else if (viewRange === "annually") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+  
+      endDate = new Date(now.getFullYear() + 1, 0, 1);
+    } else if (viewRange === "all-time") {
+      // For all-time view, return all entries without date filtering
+      return entries;
+    }
+  
+    const filteredEntries = entries.filter((entry) => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate < endDate;
     });
+  
+    console.log("Filtered Data for", viewRange, ":", filteredEntries);
+    return filteredEntries;
   };
 
   const createIncomeChart = () => {

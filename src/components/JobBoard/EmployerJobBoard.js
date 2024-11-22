@@ -104,24 +104,24 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
 
   const handleJobPost = async (e) => {
     e.preventDefault();
-
-    // Get the current user ID
-    const userId = auth.currentUser?.uid;
+  
+    const userId = auth.currentUser?.uid; // Employer's ID
     if (!userId) {
       alert("Only employers can post jobs.");
       return;
     }
-
-    // Define references for jobs and user data
+  
     const jobRef = ref(db, "jobs/");
-    const userRef = ref(db, `users/${userId}`);
-
+    const employerRef = ref(db, `users/${userId}`);
+  
     try {
-      // Fetch employer data from Firebase
-      const snapshot = await get(userRef);
+      // Fetch employer data including blockedUsers
+      const snapshot = await get(employerRef);
       const employerData = snapshot.val();
-
-      // Prepare the job entry with additional employer data
+  
+      const blockedUsers = employerData.blockedUsers || {}; // Get blocked users
+      console.log("Blocked users:", blockedUsers); // Debugging blocked users
+  
       const newJobEntry = {
         ...newJob,
         employerId: userId,
@@ -132,35 +132,48 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
         freelancerId: null,
         status: "open",
       };
-
-      // Push the new job entry to Firebase
+  
+      // Push the new job to the database
       await push(jobRef, newJobEntry);
       alert("Job posted successfully!");
-      
-      // Define paths based on user role
-      const usersref = ref (db, "users")
-      const userfilter = query (usersref, orderByChild("role"), equalTo ("Freelancer"))
-      onValue(userfilter, (snapshot) => {
-        snapshot.forEach((child) =>{
-        console.log(child.key)         
-      const notificationRef = ref(db, `notifications/${child.key}`);
-      const notification = {
-        message: `New Job Posted: ${newJob.title}`, // Inserts the job title dynamically
-        timestamp: Date.now(),
-        type: "job",
-      };
-      try {     
-        // Push the notification to the recipient's notifications
-       push(notificationRef, notification);
-      } catch (error) {
-        console.error("Error sending message:", error.message);
+  
+      // Fetch all freelancers
+      const usersRef = ref(db, "users");
+      const freelancersSnapshot = await get(usersRef);
+  
+      if (freelancersSnapshot.exists()) {
+        freelancersSnapshot.forEach((child) => {
+          const freelancerId = child.key; // Freelancer's ID
+          const freelancerData = child.val();
+  
+          // Skip sending notification if freelancer is blocked
+          if (blockedUsers[freelancerId]?.blocked) {
+            console.log(`Skipping notification for blocked freelancer: ${freelancerId}`);
+            return;
+          }
+  
+          // Only notify non-blocked freelancers
+          if (freelancerData.role === "Freelancer") {
+            const notificationRef = ref(db, `notifications/${freelancerId}`);
+            const notification = {
+              message: `New Job Posted: ${newJob.title}`,
+              timestamp: Date.now(),
+              type: "job",
+              fromId: userId,
+            };
+  
+            push(notificationRef, notification)
+              .then(() =>
+                console.log(`Notification sent to freelancer: ${freelancerId}`)
+              )
+              .catch((error) => {
+                console.error(`Error sending notification to ${freelancerId}:`, error.message);
+              });
+          }
+        });
       }
-        })
-        
-      })
-    
-        
-      // Reset the job form
+  
+      // Reset job form
       setNewJob({
         title: "",
         description: "",
@@ -173,6 +186,7 @@ const EmployerJobBoard = ({ jobs, setJobs }) => {
       alert("Error posting job. Please try again.");
     }
   };
+  
   const handleEditClick = (jobId) => {
     setCurrentJobId((prevJobId) => (prevJobId === jobId ? null : jobId));
   };

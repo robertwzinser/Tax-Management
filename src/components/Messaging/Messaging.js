@@ -267,39 +267,73 @@ const Messaging = () => {
       </button>
 
       {showRelationshipModal && (
-        <div className="modal">
-          <h3>Manage Relationships</h3>
-          <ul>
-            {allBlockedUsers.length > 0 ? (
-              allBlockedUsers.map((user) => (
-                <li key={user.userId}>
-                  <p>{user.name}</p>
-                  <button onClick={() => handleUnblockUser(user.userId)}>Unblock</button>
-                </li>
-              ))
-            ) : (
-              <p>No blocked users.</p>
-            )}
-          </ul>
-          <ul>
-            {(userRole === "Freelancer" ? employers : freelancers).map((user) => (
-              <li key={user.employerId || user.freelancerId}>
-                <p>{user.employerName || user.freelancerName}</p>
-                {blockedUsers[user.employerId || user.freelancerId]?.blocked ? (
-                  <button onClick={() => handleUnblockUser(user.employerId || user.freelancerId)}>
-                    Unblock
-                  </button>
-                ) : (
-                  <button onClick={() => handleBlockUser(user.employerId || user.freelancerId)}>
-                    Block
-                  </button>
-                )}
+  <div className="modal-overlay">
+    <div className="modal-container neo-brutalism">
+      <h3 className="modal-title">Relationship Management</h3>
+
+      {/* Blocked Users */}
+      <div className="modal-section">
+        <h4 className="section-title">Blocked Users</h4>
+        <ul className="user-list">
+          {allBlockedUsers.length > 0 ? (
+            allBlockedUsers.map((user) => (
+              <li key={user.userId} className="user-item">
+                <span className="user-avatar neo-avatar">{user.name.charAt(0)}</span>
+                <span className="user-name">{user.name}</span>
+                <button
+                  className="action-button neo-unblock"
+                  onClick={() => handleUnblockUser(user.userId)}
+                >
+                  Unblock
+                </button>
               </li>
-            ))}
-          </ul>
-          <button onClick={() => setShowRelationshipModal(false)}>Close</button>
-        </div>
-      )}
+            ))
+          ) : (
+            <p className="empty-state">No blocked users.</p>
+          )}
+        </ul>
+      </div>
+
+      {/* Manage Other Relationships */}
+      <div className="modal-section">
+        <h4 className="section-title">Relationships</h4>
+        <ul className="user-list">
+          {(userRole === "Freelancer" ? employers : freelancers).map((user) => (
+            <li key={user.employerId || user.freelancerId} className="user-item">
+              <span className="user-avatar neo-avatar">
+                {(user.employerName || user.freelancerName).charAt(0)}
+              </span>
+              <span className="user-name">{user.employerName || user.freelancerName}</span>
+              {blockedUsers[user.employerId || user.freelancerId]?.blocked ? (
+                <button
+                  className="action-button neo-unblock"
+                  onClick={() => handleUnblockUser(user.employerId || user.freelancerId)}
+                >
+                  Unblock
+                </button>
+              ) : (
+                <button
+                  className="action-button neo-block"
+                  onClick={() => handleBlockUser(user.employerId || user.freelancerId)}
+                >
+                  Block
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <button
+        className="close-modal-button neo-close"
+        onClick={() => setShowRelationshipModal(false)}
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

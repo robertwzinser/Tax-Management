@@ -1,33 +1,60 @@
 import React, { useState, useEffect } from "react";
-import { ref, set, get, push } from "firebase/database";
+import { ref, get, set, push } from "firebase/database";
 import { auth, db } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import "./JobBoard.css";
 
 const FreelancerJobBoard = ({ jobs, setMessages }) => {
-  const [employerDetails, setEmployerDetails] = useState({});
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [blockedByEmployers, setBlockedByEmployers] = useState([]); // Employers that blocked the freelancer
+  const [blockedEmployers, setBlockedEmployers] = useState([]); // Employers blocked by the freelancer
   const navigate = useNavigate();
 
+  // Fetch blocked employers and blocked-by-employers data
   useEffect(() => {
-    // Extract unique employer IDs from jobs
-    const employerIds = [...new Set(jobs.map(([_, job]) => job.employerId))];
-    const fetchEmployerDetails = async () => {
-      let details = {};
-      for (const id of employerIds) {
-        const empRef = ref(db, `users/${id}`);
-        const snapshot = await get(empRef);
-        if (snapshot.exists()) {
-          // Employer's business name is stored under 'businessName'
-          details[id] = snapshot.val().businessName || "Unknown Business";
-        }
+    const fetchBlockedData = async () => {
+      const freelancerId = auth.currentUser?.uid;
+      if (!freelancerId) return;
+
+      const freelancerRef = ref(db, `users/${freelancerId}`);
+      const snapshot = await get(freelancerRef);
+
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+
+        // Employers that blocked the freelancer
+        const blockedBy = Object.entries(userData.blockedBy || {})
+          .filter(([_, value]) => value.blocked)
+          .map(([key]) => key);
+
+        // Employers blocked by the freelancer
+        const blocked = Object.entries(userData.blockedUsers || {})
+          .filter(([_, value]) => value.blocked)
+          .map(([key]) => key);
+
+        setBlockedByEmployers(blockedBy);
+        setBlockedEmployers(blocked);
       }
-      setEmployerDetails(details);
     };
 
-    if (employerIds.length > 0) {
-      fetchEmployerDetails();
+    fetchBlockedData();
+  }, []);
+
+  // Filter jobs dynamically based on block relationships
+  useEffect(() => {
+    const filterJobs = () => {
+      const filtered = jobs.filter(
+        ([_, job]) =>
+          !blockedByEmployers.includes(job.employerId) && // Employers that blocked the freelancer
+          !blockedEmployers.includes(job.employerId)    // Employers blocked by the freelancer
+      );
+      setFilteredJobs(filtered);
+    };
+
+    if (jobs.length > 0 && (blockedByEmployers.length >= 0 || blockedEmployers.length >= 0)) {
+      filterJobs();
     }
-  }, [jobs]); // Depend on jobs
+  }, [jobs, blockedByEmployers, blockedEmployers]);
 
   const handleViewProfile = (userId) => {
     navigate(`/profile/${userId}`);
@@ -92,8 +119,8 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
     <div>
       <h1>Available Jobs</h1>
       <div className="job-list">
-        {jobs.length > 0 ? (
-          jobs.map(([id, job]) => {
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map(([id, job]) => {
             const hasRequested =
               job.requests &&
               job.requests[auth.currentUser?.uid] &&
@@ -104,9 +131,7 @@ const FreelancerJobBoard = ({ jobs, setMessages }) => {
               <div className="job-item" key={id}>
                 <h2>{job.title}</h2>
                 <p>
-                  <strong>
-                    Posted by: {employerDetails[job.employerId] || ""}
-                  </strong>
+                  <strong>Posted by: {job.employerName || "Unknown"}</strong>
                 </p>
                 <p>{job.description}</p>
                 <p>Hourly Rate: ${job.payment}</p>

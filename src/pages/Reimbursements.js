@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   ref as dbRef,
+  ref,
   push,
   set,
   query,
@@ -162,6 +163,36 @@ const Reimbursements = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const fetchEmployers = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+  
+      const linkedEmployersRef = ref(db, `users/${userId}/linkedEmployers`);
+      const snapshot = await get(linkedEmployersRef);
+      const linkedEmployers = snapshot.val();
+  
+      if (linkedEmployers) {
+        const employersData = [];
+        for (const [id, employer] of Object.entries(linkedEmployers)) {
+          const employerRef = ref(db, `users/${id}`);
+          const empSnapshot = await get(employerRef);
+          const employerData = empSnapshot.val();
+  
+          // Check if the employer has blocked the freelancer
+          const isBlocked = employerData?.blockedUsers?.[userId]?.blocked;
+          if (!isBlocked) {
+            employersData.push({ id, businessName: employer.name });
+          }
+        }
+        setEmployers(employersData); // Update state with filtered employers
+      }
+    };
+  
+    fetchEmployers();
+  }, []);
+  
 
   return (
     <div className="expenses-container">

@@ -123,9 +123,10 @@ export const FreelancerWidgets = () => {
   const calculateAGI = () => {
     const totalIncome = calculateTotalIncome();
     const totalDeductions = calculateTotalDeductions();
-    return totalIncome - totalDeductions;
+    const agi = totalIncome - totalDeductions;
+    return Math.max(agi, 0);
   };
-
+  
   const estimateTaxes = () => {
     const agi = calculateAGI();
     const stateTaxes = agi * stateTaxRate;
@@ -232,6 +233,7 @@ export const FreelancerWidgets = () => {
         };
       }
     });
+    
     return Object.entries(aggregated).map(
       ([date, { amount, estimatedTax }]) => ({
         date,

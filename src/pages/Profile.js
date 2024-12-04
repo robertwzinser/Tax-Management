@@ -275,7 +275,7 @@ const Profile = () => {
                   : `${(
                       reviews.reduce((sum, r) => sum + r.rating, 0) /
                       reviews.length
-                    ).toFixed(1)} ★`
+                    ).toFixed(0)} ★`
               }
               disabled 
               className="dynamic-rating"
